@@ -1,13 +1,40 @@
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import PageLayout from '@/components/layout/PageLayout'
-import TopBar from '@/components/layout/TopBar'
+import LoginForm from '@/components/auth/LoginForm'
+import SignupForm from '@/components/auth/SignupForm'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function Auth() {
+  const [mode, setMode] = useState('login') // 'login' | 'signup'
+  const { user, signIn, signUp } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (user) navigate('/', { replace: true })
+  }, [user, navigate])
+
   return (
-    <PageLayout>
-      <TopBar title="로그인" />
-      <main className="flex-1 flex items-center justify-center text-gray-400 text-sm">
-        로그인/회원가입 (Session 2에서 구현)
-      </main>
+    <PageLayout className="justify-center">
+      <div className="flex flex-col items-center gap-2 mb-8">
+        <span className="text-5xl">🍂</span>
+        <h1 className="text-2xl font-bold text-gray-900">바스락</h1>
+        <p className="text-sm text-gray-500">시민 산불 감시 플랫폼</p>
+      </div>
+
+      <div className="px-6">
+        {mode === 'login' ? (
+          <LoginForm
+            onSubmit={signIn}
+            onSwitch={() => setMode('signup')}
+          />
+        ) : (
+          <SignupForm
+            onSubmit={signUp}
+            onSwitch={() => setMode('login')}
+          />
+        )}
+      </div>
     </PageLayout>
   )
 }
