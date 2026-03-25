@@ -1,30 +1,50 @@
 import { useEffect, useRef } from 'react'
-import { loadKakaoMap } from '@/lib/kakao'
+import L from 'leaflet'
+import { getVWorldTileUrl } from '@/lib/vworld'
+
+// Leaflet 기본 마커 아이콘 경로 수정 (Vite 빌드 이슈)
+delete L.Icon.Default.prototype._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+})
 
 export default function KakaoMap({ center, onMapReady }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
-  // 최신 center 값을 ref로 유지 — 지도 로딩 완료 시점에 GPS가 이미 준비됐을 수 있음
   const centerRef = useRef(center)
   useEffect(() => { centerRef.current = center }, [center])
 
   // 최초 1회 지도 초기화
   useEffect(() => {
-    loadKakaoMap().then(() => {
-      const c = centerRef.current ?? { lat: 36.5, lng: 127.5 }
-      mapRef.current = new window.kakao.maps.Map(containerRef.current, {
-        center: new window.kakao.maps.LatLng(c.lat, c.lng),
-        level: centerRef.current ? 5 : 8,
-      })
-      onMapReady?.(mapRef.current)
+    const c = centerRef.current ?? { lat: 36.5, lng: 127.5 }
+    mapRef.current = L.map(containerRef.current, {
+      center: [c.lat, c.lng],
+      zoom: centerRef.current ? 13 : 7,
+      zoomControl: false,
     })
+
+    L.tileLayer(getVWorldTileUrl(), {
+      maxZoom: 19,
+      attribution: '© 국토지리정보원',
+    }).addTo(mapRef.current)
+
+    // 줌 컨트롤 우측 하단
+    L.control.zoom({ position: 'bottomright' }).addTo(mapRef.current)
+
+    onMapReady?.(mapRef.current)
+
+    return () => {
+      mapRef.current?.remove()
+      mapRef.current = null
+    }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // GPS 준비 후 지도 중심 이동
   useEffect(() => {
     if (!mapRef.current || !center) return
-    mapRef.current.panTo(new window.kakao.maps.LatLng(center.lat, center.lng))
-    mapRef.current.setLevel(5)
+    mapRef.current.flyTo([center.lat, center.lng], 13, { duration: 1.2 })
   }, [center])
 
   return <div ref={containerRef} className="w-full h-full" />
