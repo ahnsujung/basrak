@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { getRiskColor, getRiskLabel } from '@/utils/riskCalculator'
 
-export default function RiskMarker({ map, observation }) {
+export default function RiskMarker({ map, observation, onClick }) {
   useEffect(() => {
     if (!map || !observation) return
 
@@ -23,6 +23,7 @@ export default function RiskMarker({ map, observation }) {
     ].join(';')
     el.onmouseenter = () => { el.style.transform = 'scale(1.4)' }
     el.onmouseleave = () => { el.style.transform = 'scale(1)' }
+    el.onclick = () => onClick?.(observation)
 
     const overlay = new window.kakao.maps.CustomOverlay({
       position: new window.kakao.maps.LatLng(lat, lng),
@@ -32,7 +33,7 @@ export default function RiskMarker({ map, observation }) {
     overlay.setMap(map)
 
     return () => overlay.setMap(null)
-  }, [map, observation])
+  }, [map, observation]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return null
 }

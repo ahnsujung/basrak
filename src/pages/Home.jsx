@@ -5,12 +5,14 @@ import BottomNav from '@/components/layout/BottomNav'
 import KakaoMap from '@/components/map/KakaoMap'
 import RiskMarker from '@/components/map/RiskMarker'
 import MapLegend from '@/components/map/MapLegend'
+import ObservationSheet from '@/components/map/ObservationSheet'
 import Spinner from '@/components/ui/Spinner'
 import { useLocation } from '@/hooks/useLocation'
 import { useMapObservations } from '@/hooks/useMapObservations'
 
 export default function Home() {
   const [map, setMap] = useState(null)
+  const [selected, setSelected] = useState(null)
   const { status, coords } = useLocation()
   const { observations, loading } = useMapObservations()
 
@@ -30,10 +32,12 @@ export default function Home() {
         )}
 
         {map && observations.map((obs) => (
-          <RiskMarker key={obs.id} map={map} observation={obs} />
+          <RiskMarker key={obs.id} map={map} observation={obs} onClick={setSelected} />
         ))}
       </main>
       <BottomNav />
+
+      <ObservationSheet observation={selected} onClose={() => setSelected(null)} />
     </PageLayout>
   )
 }
