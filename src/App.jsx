@@ -4,6 +4,7 @@ import Home from '@/pages/Home'
 import Observe from '@/pages/Observe'
 import Profile from '@/pages/Profile'
 import Auth from '@/pages/Auth'
+import MapTest from '@/pages/MapTest'
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
         <Route path="/" element={<RequireAuth><Home /></RequireAuth>} />
         <Route path="/observe" element={<RequireAuth><Observe /></RequireAuth>} />
         <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
+        <Route path="/dev/map-test" element={<MapTest />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

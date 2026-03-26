@@ -33,6 +33,7 @@ export default function KakaoMap({ center, onMapReady }) {
     // 줌 컨트롤 우측 하단
     L.control.zoom({ position: 'bottomright' }).addTo(mapRef.current)
 
+    mapRef.current.invalidateSize()
     onMapReady?.(mapRef.current)
 
     return () => {
@@ -47,5 +48,5 @@ export default function KakaoMap({ center, onMapReady }) {
     mapRef.current.flyTo([center.lat, center.lng], 13, { duration: 1.2 })
   }, [center])
 
-  return <div ref={containerRef} className="w-full h-full" />
+  return <div ref={containerRef} className="absolute inset-0" />
 }
