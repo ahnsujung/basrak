@@ -9,24 +9,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 })
 
-// 대한민국 경계 레이어
-async function addKoreaLayer(map) {
-  try {
-    const res = await fetch('/data/korea_forest.geojson')
-    const geojson = await res.json()
-    L.geoJSON(geojson, {
-      style: {
-        color: '#9ca3af',
-        weight: 1,
-        fillColor: '#f3f4f6',
-        fillOpacity: 0.25,
-      },
-      interactive: false,
-    }).addTo(map)
-  } catch (e) {
-    console.warn('경계 레이어 로드 실패:', e)
-  }
-}
 
 export default function KakaoMap({ onMapReady, flyToRef }) {
   const containerRef = useRef(null)
@@ -49,8 +31,6 @@ export default function KakaoMap({ onMapReady, flyToRef }) {
 
     // 줌 컨트롤 우측 하단
     L.control.zoom({ position: 'bottomright' }).addTo(mapRef.current)
-
-    addKoreaLayer(mapRef.current)
 
     mapRef.current.invalidateSize()
 
