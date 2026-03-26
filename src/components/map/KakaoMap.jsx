@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
 import L from 'leaflet'
-import { getVWorldTileUrl } from '@/lib/vworld'
 
 // Leaflet 기본 마커 아이콘 경로 수정 (Vite 빌드 이슈)
 delete L.Icon.Default.prototype._getIconUrl
@@ -41,9 +40,11 @@ export default function KakaoMap({ onMapReady, flyToRef }) {
       zoomControl: false,
     })
 
-    L.tileLayer(getVWorldTileUrl(), {
+    // CartoDB Positron — 흰 바탕에 지명만 표시되는 미니멀 스타일
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
-      attribution: '© 국토지리정보원',
+      attribution: '© OpenStreetMap contributors © CARTO',
+      subdomains: 'abcd',
     }).addTo(mapRef.current)
 
     // 줌 컨트롤 우측 하단
