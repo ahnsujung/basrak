@@ -29,18 +29,15 @@ async function addForestLayer(map) {
   }
 }
 
-export default function KakaoMap({ center, onMapReady }) {
+export default function KakaoMap({ onMapReady, flyToRef }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
-  const centerRef = useRef(center)
-  useEffect(() => { centerRef.current = center }, [center])
 
-  // 최초 1회 지도 초기화
+  // 최초 1회 지도 초기화 — 항상 전국 뷰로 시작
   useEffect(() => {
-    const c = centerRef.current ?? { lat: 36.5, lng: 127.5 }
     mapRef.current = L.map(containerRef.current, {
-      center: [c.lat, c.lng],
-      zoom: centerRef.current ? 13 : 7,
+      center: [36.5, 127.5],
+      zoom: 7,
       zoomControl: false,
     })
 
@@ -55,6 +52,14 @@ export default function KakaoMap({ center, onMapReady }) {
     addForestLayer(mapRef.current)
 
     mapRef.current.invalidateSize()
+
+    // flyToRef를 통해 외부에서 내 위치로 이동 가능하게
+    if (flyToRef) {
+      flyToRef.current = (coords) => {
+        mapRef.current?.flyTo([coords.lat, coords.lng], 13, { duration: 1.2 })
+      }
+    }
+
     onMapReady?.(mapRef.current)
 
     return () => {
@@ -62,12 +67,6 @@ export default function KakaoMap({ center, onMapReady }) {
       mapRef.current = null
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // GPS 준비 후 지도 중심 이동
-  useEffect(() => {
-    if (!mapRef.current || !center) return
-    mapRef.current.flyTo([center.lat, center.lng], 13, { duration: 1.2 })
-  }, [center])
 
   return <div ref={containerRef} className="absolute inset-0" />
 }
