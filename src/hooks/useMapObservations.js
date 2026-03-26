@@ -3,20 +3,24 @@ import { supabase } from '@/lib/supabase'
 
 export function useMapObservations() {
   const [observations, setObservations] = useState([])
+  const [totalCount, setTotalCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
-  // 최초 24시간치 데이터 조회
+  // 최초 24시간치 데이터 + 전체 관측 수 조회
   useEffect(() => {
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-    supabase
-      .from('observations')
-      .select('id, lat, lng, dryness_level, wind_level, risk_score, photo_url, observed_at')
-      .gte('observed_at', since)
-      .order('observed_at', { ascending: false })
-      .then(({ data, error }) => {
-        if (!error && data) setObservations(data)
-        setLoading(false)
-      })
+    Promise.all([
+      supabase
+        .from('observations')
+        .select('id, lat, lng, dryness_level, wind_level, risk_score, photo_url, observed_at')
+        .gte('observed_at', since)
+        .order('observed_at', { ascending: false }),
+      supabase.rpc('get_observation_count'),
+    ]).then(([{ data, error }, { data: count }]) => {
+      if (!error && data) setObservations(data)
+      if (count != null) setTotalCount(count)
+      setLoading(false)
+    })
   }, [])
 
   // Realtime: 새 관측 실시간 추가
@@ -28,6 +32,7 @@ export function useMapObservations() {
         { event: 'INSERT', schema: 'public', table: 'observations' },
         (payload) => {
           setObservations((prev) => [payload.new, ...prev])
+          setTotalCount((prev) => prev + 1)
         }
       )
       .subscribe()
@@ -35,5 +40,5 @@ export function useMapObservations() {
     return () => supabase.removeChannel(channel)
   }, [])
 
-  return { observations, loading }
+  return { observations, totalCount, loading }
 }

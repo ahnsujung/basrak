@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import PageLayout from '@/components/layout/PageLayout'
 import TopBar from '@/components/layout/TopBar'
 import BottomNav from '@/components/layout/BottomNav'
@@ -8,6 +9,7 @@ import LocationStatus from '@/components/observation/LocationStatus'
 import PhotoAttach from '@/components/observation/PhotoAttach'
 import SubmitButton from '@/components/observation/SubmitButton'
 import SuccessSheet from '@/components/observation/SuccessSheet'
+import MilestoneModal from '@/components/map/MilestoneModal'
 import { useLocation } from '@/hooks/useLocation'
 import { useObservation } from '@/hooks/useObservation'
 import { useAuth } from '@/hooks/useAuth'
@@ -16,13 +18,18 @@ export default function Observe() {
   const [dryness, setDryness] = useState(null)
   const [wind, setWind] = useState(null)
   const [photo, setPhoto] = useState(null)
+  const [milestoneCount, setMilestoneCount] = useState(null)
 
+  const navigate = useNavigate()
   const { status: locationStatus, coords } = useLocation()
   const { user } = useAuth()
   const { submit, loading, error, success, reset } = useObservation()
 
-  const handleSubmit = () => {
-    submit({ dryness, wind, coords, photo, userId: user.id })
+  const handleSubmit = async () => {
+    const result = await submit({ dryness, wind, coords, photo, userId: user.id })
+    if (result?.milestone) {
+      setMilestoneCount(result.milestone)
+    }
   }
 
   const handleSuccessClose = () => {
@@ -61,6 +68,16 @@ export default function Observe() {
         wind={wind}
         onClose={handleSuccessClose}
       />
+
+      {milestoneCount && (
+        <MilestoneModal
+          count={milestoneCount}
+          onClose={() => {
+            setMilestoneCount(null)
+            navigate('/')
+          }}
+        />
+      )}
     </PageLayout>
   )
 }
