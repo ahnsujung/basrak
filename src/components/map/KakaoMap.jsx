@@ -22,9 +22,9 @@ export default function KakaoMap({ onMapReady, flyToRef }) {
       zoomControl: false,
     })
 
-    // VWorld Base — 한국어 지명 표시
+    // VWorld Gray — 흑백 미니멀 스타일 + 한국어 지명
     const vworldKey = import.meta.env.VITE_VWORLD_KEY
-    L.tileLayer(`https://api.vworld.kr/req/wmts/1.0.0/${vworldKey}/Base/{z}/{y}/{x}.png`, {
+    L.tileLayer(`https://api.vworld.kr/req/wmts/1.0.0/${vworldKey}/gray/{z}/{y}/{x}.png`, {
       maxZoom: 18,
       attribution: '© VWorld',
       tileSize: 256,
