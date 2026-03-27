@@ -19,9 +19,9 @@ export default function LevelBadge({ points = 0, size = 'md' }) {
 
   if (size === 'sm') {
     return (
-      <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${level.bg} ${level.border} ${level.color}`}>
-        {level.icon} {level.label}
-      </span>
+      <div className={`w-9 h-9 rounded-full flex items-center justify-center border-2 ${level.bg} ${level.border}`}>
+        <span className="text-lg leading-none">{level.icon}</span>
+      </div>
     )
   }
   const next = getNextLevelPoints(points)
