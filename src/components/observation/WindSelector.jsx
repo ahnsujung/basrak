@@ -22,22 +22,19 @@ export default function WindSelector({ value, onChange }) {
               type="button"
               onClick={() => onChange(level)}
               className={[
-                'rounded-2xl p-3 text-left border-2 transition-all active:scale-[0.97]',
+                'rounded-xl px-3 py-2 text-left border-2 transition-all active:scale-[0.97] flex items-center gap-2',
                 selected
                   ? 'bg-blue-50 border-blue-400 shadow-sm'
                   : 'bg-white border-gray-100 hover:border-gray-300',
               ].join(' ')}
             >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xl">{icon}</span>
-                <span className={`text-xs font-bold ${selected ? 'text-blue-400' : 'text-gray-300'}`}>
-                  {level}
-                </span>
+              <span className="text-lg shrink-0">{icon}</span>
+              <div className="min-w-0">
+                <p className={`text-xs font-semibold leading-tight ${selected ? 'text-blue-800' : 'text-gray-700'}`}>
+                  {label}
+                </p>
+                <p className="text-[10px] text-gray-400 leading-tight truncate">{desc}</p>
               </div>
-              <p className={`text-sm font-semibold mb-0.5 ${selected ? 'text-blue-800' : 'text-gray-700'}`}>
-                {label}
-              </p>
-              <p className="text-xs text-gray-500 leading-tight">{desc}</p>
             </button>
           )
         })}
