@@ -9,7 +9,7 @@ const ITEMS = [
 
 export default function MapLegend({ count }) {
   return (
-    <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg px-3 py-2.5 z-10">
+    <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg px-3 py-2.5 z-[1000]">
       <p className="text-xs font-semibold text-gray-500 mb-1.5">산불 위험도</p>
       <div className="flex flex-col gap-1.5">
         {ITEMS.map(({ score, label }) => (
