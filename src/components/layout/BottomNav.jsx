@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 
 const tabs = [
   { to: '/', label: '지도', icon: '🗺️' },
-  { to: '/observe', label: '관측', icon: '🍂' },
+  { to: '/observe', label: '관찰', icon: '🍂' },
   { to: '/profile', label: '내 기여', icon: '👤' },
 ]
 
