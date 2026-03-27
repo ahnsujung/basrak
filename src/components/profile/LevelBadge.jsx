@@ -14,8 +14,16 @@ export function getNextLevelPoints(points) {
   return current < LEVELS.length - 1 ? LEVELS[current + 1].min : null
 }
 
-export default function LevelBadge({ points = 0 }) {
+export default function LevelBadge({ points = 0, size = 'md' }) {
   const level = getLevelInfo(points)
+
+  if (size === 'sm') {
+    return (
+      <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${level.bg} ${level.border} ${level.color}`}>
+        {level.icon} {level.label}
+      </span>
+    )
+  }
   const next = getNextLevelPoints(points)
   const progress = next
     ? Math.round(((points - level.min) / (next - level.min)) * 100)

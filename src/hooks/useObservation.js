@@ -1,6 +1,45 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
+function toKSTDateString(date) {
+  return new Date(date.getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)
+}
+
+async function updateStreak(userId) {
+  const today = toKSTDateString(new Date())
+  const yesterday = toKSTDateString(new Date(Date.now() - 86400000))
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('streak_days, last_observed_date, streak_shield')
+    .eq('id', userId)
+    .single()
+
+  const last = profile?.last_observed_date
+  if (last === today) return // 오늘 이미 기록
+
+  let streak = profile?.streak_days ?? 0
+  let shield = profile?.streak_shield ?? 0
+
+  if (last === yesterday) {
+    streak += 1
+  } else if (last !== null && last !== undefined) {
+    if (shield > 0) {
+      shield -= 1
+      streak += 1
+    } else {
+      streak = 1
+    }
+  } else {
+    streak = 1
+  }
+
+  await supabase
+    .from('profiles')
+    .update({ streak_days: streak, last_observed_date: today, streak_shield: shield })
+    .eq('id', userId)
+}
+
 const POINTS_PER_OBSERVATION = 10
 const MILESTONES = [100, 500, 1000, 5000, 10000]
 const MILESTONE_BONUS = { 100: 50, 500: 100, 1000: 200 }
@@ -80,10 +119,13 @@ export function useObservation() {
             .from('profiles')
             .update({ total_points: (profile?.total_points ?? 0) + POINTS_PER_OBSERVATION + bonus })
             .eq('id', userId)
+          await updateStreak(userId)
           setSuccess(true)
           return { success: true, milestone: hitMilestone }
         }
       }
+
+      await updateStreak(userId)
 
       setSuccess(true)
       return { success: true, milestone: null }

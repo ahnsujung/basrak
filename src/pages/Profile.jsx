@@ -12,7 +12,7 @@ import { useProfile } from '@/hooks/useProfile'
 
 export default function Profile() {
   const { user, signOut } = useAuth()
-  const { profile, streak, loading, updateNickname } = useProfile(user?.id)
+  const { profile, loading, updateNickname } = useProfile(user?.id)
   const [tab, setTab] = useState('points') // 'points' | 'observations'
 
   const needNickname = !loading && profile && !profile.nickname
@@ -57,7 +57,7 @@ export default function Profile() {
         <section className="px-4">
           <div className="bg-orange-50 rounded-2xl px-4 py-3 flex items-center gap-4">
             <div className="text-center">
-              <p className="text-4xl font-black text-orange-500 leading-none">{streak}</p>
+              <p className="text-4xl font-black text-orange-500 leading-none">{profile?.streak_days ?? 0}</p>
               <p className="text-xs text-orange-400 font-medium mt-0.5">일째</p>
             </div>
             <div>
