@@ -37,7 +37,11 @@ export default function Home() {
     <PageLayout>
       <TopBar
         title="바스락 🍂"
-        right={profile && <LevelBadge points={profile.total_points ?? 0} size="sm" />}
+        right={profile && (
+          <button onClick={() => navigate('/profile')}>
+            <LevelBadge points={profile.total_points ?? 0} size="sm" />
+          </button>
+        )}
       />
       <StreakBanner
         streakDays={profile?.streak_days}
