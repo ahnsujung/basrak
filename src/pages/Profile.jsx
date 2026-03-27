@@ -12,7 +12,7 @@ import { useProfile } from '@/hooks/useProfile'
 
 export default function Profile() {
   const { user, signOut } = useAuth()
-  const { profile, loading, updateNickname } = useProfile(user?.id)
+  const { profile, streak, loading, updateNickname } = useProfile(user?.id)
   const [tab, setTab] = useState('points') // 'points' | 'observations'
 
   const needNickname = !loading && profile && !profile.nickname
@@ -24,7 +24,7 @@ export default function Profile() {
   if (loading) {
     return (
       <PageLayout>
-        <TopBar title="내 기여" />
+        <TopBar title="나의 기여도" />
         <main className="flex-1 flex items-center justify-center">
           <Spinner size="lg" />
         </main>
@@ -53,6 +53,20 @@ export default function Profile() {
           <p className="text-sm text-gray-400">{user?.email}</p>
         </section>
 
+        {/* 연속 관찰 스트릭 */}
+        <section className="px-4">
+          <div className="bg-orange-50 rounded-2xl px-4 py-3 flex items-center gap-4">
+            <div className="text-center">
+              <p className="text-4xl font-black text-orange-500 leading-none">{streak}</p>
+              <p className="text-xs text-orange-400 font-medium mt-0.5">일째</p>
+            </div>
+            <div>
+              <p className="text-sm font-bold text-orange-700">🔥 연속 관찰 중!</p>
+              <p className="text-xs text-orange-400">매일 관찰하면 스트릭이 쌓여요</p>
+            </div>
+          </div>
+        </section>
+
         {/* 등급 배지 */}
         <section className="px-4">
           <LevelBadge points={profile?.total_points ?? 0} />
@@ -63,7 +77,7 @@ export default function Profile() {
           <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
             {[
               { key: 'points', label: '포인트 이력' },
-              { key: 'observations', label: '내 관측' },
+              { key: 'observations', label: '내 관찰' },
             ].map(({ key, label }) => (
               <button
                 key={key}
