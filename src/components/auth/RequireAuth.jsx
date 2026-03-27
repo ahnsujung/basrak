@@ -1,8 +1,9 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function RequireAuth({ children }) {
   const { user } = useAuth()
+  const location = useLocation()
 
   if (user === undefined) {
     // 세션 로딩 중 — 빈 화면 (깜빡임 방지)
@@ -10,7 +11,7 @@ export default function RequireAuth({ children }) {
   }
 
   if (user === null) {
-    return <Navigate to="/auth" replace />
+    return <Navigate to="/auth" state={{ from: location.pathname }} replace />
   }
 
   return children

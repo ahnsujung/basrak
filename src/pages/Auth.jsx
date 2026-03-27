@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import PageLayout from '@/components/layout/PageLayout'
 import LoginForm from '@/components/auth/LoginForm'
 import SignupForm from '@/components/auth/SignupForm'
@@ -9,10 +9,12 @@ export default function Auth() {
   const [mode, setMode] = useState('login') // 'login' | 'signup'
   const { user, signIn, signUp } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = location.state?.from || '/'
 
   useEffect(() => {
-    if (user) navigate('/', { replace: true })
-  }, [user, navigate])
+    if (user) navigate(from, { replace: true })
+  }, [user, navigate, from])
 
   return (
     <PageLayout className="justify-center">

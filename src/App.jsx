@@ -11,7 +11,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/auth" element={<Auth />} />
-        <Route path="/" element={<RequireAuth><Home /></RequireAuth>} />
+        <Route path="/" element={<Home />} />
         <Route path="/observe" element={<RequireAuth><Observe /></RequireAuth>} />
         <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
         <Route path="/dev/map-test" element={<MapTest />} />
