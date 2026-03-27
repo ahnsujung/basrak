@@ -22,11 +22,12 @@ export default function KakaoMap({ onMapReady, flyToRef }) {
       zoomControl: false,
     })
 
-    // CartoDB Positron — 흰 바탕에 지명만 표시되는 미니멀 스타일
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap contributors © CARTO',
-      subdomains: 'abcd',
+    // VWorld Base — 한국어 지명 표시
+    const vworldKey = import.meta.env.VITE_VWORLD_KEY
+    L.tileLayer(`https://api.vworld.kr/req/wmts/1.0.0/${vworldKey}/Base/{z}/{y}/{x}.png`, {
+      maxZoom: 18,
+      attribution: '© VWorld',
+      tileSize: 256,
     }).addTo(mapRef.current)
 
     // 줌 컨트롤 우측 하단
