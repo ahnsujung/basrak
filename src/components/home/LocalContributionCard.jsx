@@ -1,4 +1,11 @@
-const RANK_MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' }
+const MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' }
+
+function rankLabel(name, rank) {
+  const medal = MEDAL[rank] ? `${MEDAL[rank]} ` : ''
+  const excl = rank <= 3 ? '!' : ''
+  if (rank <= 10) return `${medal}${name} 전국 ${rank}등${excl}`
+  return `${name} ${rank}등`
+}
 
 export default function LocalContributionCard({ data }) {
   if (!data) return null
@@ -18,7 +25,7 @@ export default function LocalContributionCard({ data }) {
         </div>
         {data.provinceName && data.provinceRank && (
           <span className="text-xs font-semibold text-orange-600 shrink-0">
-            {RANK_MEDAL[data.provinceRank] ?? `${data.provinceRank}위`} {data.provinceName} 전국 {data.provinceRank}등!
+            {rankLabel(data.provinceName, data.provinceRank)}
           </span>
         )}
       </div>
