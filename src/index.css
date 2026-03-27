@@ -19,6 +19,24 @@ body {
   min-height: 100dvh;
 }
 
+/* 지도 배경 (바다) */
+.leaflet-container {
+  background: #dbe9f4;
+}
+
+/* 시도 이름 라벨 */
+.province-label {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.province-label::before { display: none !important; }
+
 @keyframes slide-up {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }

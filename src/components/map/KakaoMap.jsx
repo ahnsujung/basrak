@@ -22,13 +22,27 @@ export default function KakaoMap({ onMapReady, flyToRef }) {
       zoomControl: false,
     })
 
-    // VWorld White — 흰색 미니멀 스타일 + 한국어 지명
-    const vworldKey = import.meta.env.VITE_VWORLD_KEY
-    L.tileLayer(`https://api.vworld.kr/req/wmts/1.0.0/${vworldKey}/white/{z}/{y}/{x}.png`, {
-      maxZoom: 18,
-      attribution: '© VWorld',
-      tileSize: 256,
-    }).addTo(mapRef.current)
+    // 시도 행정경계 GeoJSON — 도로 없는 미니멀 지도
+    fetch('https://cdn.jsdelivr.net/gh/southkorea/southkorea-maps@master/kostat/2013/json/skorea_provinces_geo_simple.json')
+      .then(r => r.json())
+      .then(data => {
+        if (!mapRef.current) return
+        L.geoJSON(data, {
+          style: {
+            color: '#94a3b8',
+            weight: 1,
+            fillColor: '#f8fafc',
+            fillOpacity: 1,
+          },
+          onEachFeature: (feature, layer) => {
+            layer.bindTooltip(feature.properties.name, {
+              permanent: true,
+              direction: 'center',
+              className: 'province-label',
+            })
+          },
+        }).addTo(mapRef.current)
+      })
 
     // 줌 컨트롤 우측 하단
     L.control.zoom({ position: 'bottomright' }).addTo(mapRef.current)
