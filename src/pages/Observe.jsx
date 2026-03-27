@@ -26,6 +26,10 @@ export default function Observe() {
   const { submit, loading, error, success, reset } = useObservation()
 
   const handleSubmit = async () => {
+    if (!user) {
+      navigate('/auth', { state: { from: '/observe' } })
+      return
+    }
     const result = await submit({ dryness, wind, coords, photo, userId: user.id })
     if (result?.milestone) {
       setMilestoneCount(result.milestone)

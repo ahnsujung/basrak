@@ -21,7 +21,7 @@ export default function SubmitButton({ dryness, wind, location, loading, onSubmi
         loading={loading}
         onClick={onSubmit}
       >
-        {loading ? '등록 중...' : '관측 등록하기'}
+        {loading ? '등록 중...' : '관찰 등록하기'}
       </Button>
     </section>
   )

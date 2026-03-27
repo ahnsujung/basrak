@@ -12,7 +12,7 @@ export default function App() {
       <Routes>
         <Route path="/auth" element={<Auth />} />
         <Route path="/" element={<Home />} />
-        <Route path="/observe" element={<RequireAuth><Observe /></RequireAuth>} />
+        <Route path="/observe" element={<Observe />} />
         <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
         <Route path="/dev/map-test" element={<MapTest />} />
         <Route path="*" element={<Navigate to="/" replace />} />
