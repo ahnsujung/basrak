@@ -1,19 +1,22 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 
+function localDateStr(d) {
+  const date = new Date(d)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
+
 function calcStreak(dates) {
   if (!dates.length) return 0
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const todayStr = today.toISOString().slice(0, 10)
-  const yesterday = new Date(today)
-  yesterday.setDate(today.getDate() - 1)
-  const yesterdayStr = yesterday.toISOString().slice(0, 10)
+  const todayStr = localDateStr(new Date())
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
+  const yesterdayStr = localDateStr(yesterday)
   if (dates[0] !== todayStr && dates[0] !== yesterdayStr) return 0
   let count = 0
-  const cursor = new Date(dates[0])
+  const cursor = new Date(dates[0] + 'T00:00:00')
   for (const date of dates) {
-    if (date === cursor.toISOString().slice(0, 10)) {
+    if (date === localDateStr(cursor)) {
       count++
       cursor.setDate(cursor.getDate() - 1)
     } else {
@@ -37,14 +40,15 @@ export function useProfile(userId) {
         .eq('id', userId)
         .single(),
       supabase
-        .from('observations')
-        .select('observed_at')
+        .from('point_logs')
+        .select('created_at')
         .eq('user_id', userId)
-        .order('observed_at', { ascending: false }),
-    ]).then(([{ data: profileData }, { data: obsData }]) => {
+        .eq('reason', 'observation')
+        .order('created_at', { ascending: false }),
+    ]).then(([{ data: profileData }, { data: logData }]) => {
       setProfile(profileData)
-      if (obsData) {
-        const dates = [...new Set(obsData.map(d => d.observed_at.slice(0, 10)))]
+      if (logData) {
+        const dates = [...new Set(logData.map(d => localDateStr(d.created_at)))]
         setStreak(calcStreak(dates))
       }
       setLoading(false)
