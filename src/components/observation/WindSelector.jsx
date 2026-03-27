@@ -13,7 +13,7 @@ export default function WindSelector({ value, onChange }) {
       <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
         체감 풍속
       </h2>
-      <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-2 gap-2">
         {LEVELS.map(({ level, icon, label, desc }) => {
           const selected = value === level
           return (
@@ -22,22 +22,22 @@ export default function WindSelector({ value, onChange }) {
               type="button"
               onClick={() => onChange(level)}
               className={[
-                'flex items-center gap-3 rounded-2xl px-4 py-3 border-2 transition-all active:scale-[0.98]',
+                'rounded-2xl p-3 text-left border-2 transition-all active:scale-[0.97]',
                 selected
-                  ? 'bg-blue-50 border-blue-400'
+                  ? 'bg-blue-50 border-blue-400 shadow-sm'
                   : 'bg-white border-gray-100 hover:border-gray-300',
               ].join(' ')}
             >
-              <span className="text-2xl w-8 text-center">{icon}</span>
-              <div className="flex-1 text-left">
-                <p className={`text-sm font-semibold ${selected ? 'text-blue-800' : 'text-gray-800'}`}>
-                  {label}
-                </p>
-                <p className="text-xs text-gray-500">{desc}</p>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xl">{icon}</span>
+                <span className={`text-xs font-bold ${selected ? 'text-blue-400' : 'text-gray-300'}`}>
+                  {level}
+                </span>
               </div>
-              <span className={`text-xs font-bold w-6 text-center ${selected ? 'text-blue-600' : 'text-gray-300'}`}>
-                {level}
-              </span>
+              <p className={`text-sm font-semibold mb-0.5 ${selected ? 'text-blue-800' : 'text-gray-700'}`}>
+                {label}
+              </p>
+              <p className="text-xs text-gray-500 leading-tight">{desc}</p>
             </button>
           )
         })}
