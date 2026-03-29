@@ -23,7 +23,7 @@ export default function WebLayout() {
   return (
     <div className="flex h-screen w-screen bg-gray-50 text-[13px]">
       {/* 사이드바 */}
-      <aside className="w-[240px] h-full bg-white border-r border-gray-200 flex flex-col shrink-0">
+      <aside className="w-[300px] h-full bg-white border-r border-gray-200 flex flex-col shrink-0">
         {/* 헤더 */}
         <div className="h-16 flex items-baseline gap-2 px-6 bg-brand shrink-0" style={{ alignItems: 'center' }}>
           <span className="text-xl font-extrabold text-white tracking-widest">바스락</span>
