@@ -26,6 +26,7 @@ export default function KakaoMap({ onMapReady, coords }) {
       maxBounds: southKoreaBounds,
       maxBoundsViscosity: 1.0,
       minZoom: 7,
+      maxZoom: 18,
       attributionControl: false,
       renderer: L.svg({ padding: 2.0 }),
     })

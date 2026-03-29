@@ -1,24 +1,32 @@
 import L from 'leaflet'
 import { getRiskColor } from './riskCalculator'
 
-// 영향권 반경 (미터) — 고정 10km
-export const getInfluenceRadius = () => 10000
-
-// 관측 수에 따른 마커 반경 (픽셀)
-export const getMarkerRadius = (totalCount) => {
-  return Math.max(12, 28 - totalCount * 0.003)
+// 줌 레벨별 영향권 반경 (미터)
+export const getInfluenceRadius = (zoom) => {
+  if (zoom <= 7) return 5000
+  if (zoom <= 9) return 3000
+  if (zoom <= 11) return 1500
+  return 500
 }
 
-// 영향권 원 레이어를 layerGroup에 추가
-export const renderCircleMode = (layerGroup, observations, totalCount, onSelect) => {
-  const influenceRadius = getInfluenceRadius(totalCount)
-  const markerRadius = getMarkerRadius(totalCount)
+// 줌 레벨별 마커 크기 (픽셀)
+export const getMarkerSize = (zoom) => {
+  if (zoom <= 7) return 16
+  if (zoom <= 9) return 20
+  if (zoom <= 11) return 26
+  return 32
+}
+
+// 개별 관측 마커 + 영향권 원 렌더링
+export const renderCircleMode = (layerGroup, observations, zoom, onSelect) => {
+  const influenceRadius = getInfluenceRadius(zoom)
+  const size = getMarkerSize(zoom)
 
   observations.forEach((obs) => {
     const color = getRiskColor(obs.risk_score)
     const latlng = [obs.lat, obs.lng]
 
-    // 영향권 원 (바깥쪽) — 테두리만, 채움 없음
+    // 영향권 원 (바깥쪽)
     L.circle(latlng, {
       radius: influenceRadius,
       color: color,
@@ -40,8 +48,7 @@ export const renderCircleMode = (layerGroup, observations, totalCount, onSelect)
       interactive: false,
     }).addTo(layerGroup)
 
-    // 마커 (중심) — 글로우 + 얇은 링 스타일
-    const size = markerRadius * 2
+    // 마커 (중심)
     const icon = L.divIcon({
       className: '',
       html: `
@@ -50,7 +57,6 @@ export const renderCircleMode = (layerGroup, observations, totalCount, onSelect)
           position:relative;
           display:flex; align-items:center; justify-content:center;
         ">
-          <!-- 외곽 링 -->
           <div style="
             position:absolute;
             width:100%; height:100%;
@@ -58,7 +64,6 @@ export const renderCircleMode = (layerGroup, observations, totalCount, onSelect)
             border:1px solid ${color};
             opacity:0.5;
           "></div>
-          <!-- 중간 링 -->
           <div style="
             position:absolute;
             width:55%; height:55%;
@@ -66,7 +71,6 @@ export const renderCircleMode = (layerGroup, observations, totalCount, onSelect)
             border:1.5px solid ${color};
             opacity:0.75;
           "></div>
-          <!-- 중심 점 -->
           <div style="
             width:5px; height:5px;
             border-radius:50%;
