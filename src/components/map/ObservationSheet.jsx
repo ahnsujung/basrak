@@ -1,18 +1,10 @@
 import { useState } from 'react'
 import Modal from '@/components/ui/Modal'
-import Badge from '@/components/ui/Badge'
-import { getRiskLabel, getRiskColor } from '@/utils/riskCalculator'
+import { getRiskLabel, getRiskColor, calcRiskScore } from '@/utils/riskCalculator'
 import { median } from '@/utils/median'
 
-const RISK_VARIANT = (score) => {
-  if (score <= 3) return 'green'
-  if (score <= 5) return 'yellow'
-  if (score <= 7) return 'orange'
-  return 'red'
-}
-
 const DRYNESS_LABEL = ['', '촉촉함', '구겨짐', '쪼개짐', '바스라짐']
-const WIND_LABEL = ['', '바람 없음', '산들바람', '약한 바람', '보통 바람', '강한 바람', '매우 강한 바람']
+const WIND_LABEL = ['', '없음', '산들바람', '약한 바람', '보통 바람', '강한 바람', '매우 강함']
 
 function formatTime(dateStr) {
   return new Date(dateStr).toLocaleDateString('ko-KR', {
@@ -20,39 +12,72 @@ function formatTime(dateStr) {
   })
 }
 
-function SingleCard({ obs, onPhotoClick }) {
-  const { dryness_level, wind_level, photo_url, observed_at } = obs
+function RiskBar({ score, dryness, wind }) {
+  const color = getRiskColor(score)
+  const label = getRiskLabel(score)
+  const pct = ((score - 1) / 9) * 100
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-3">
-        <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center flex-shrink-0">
-          <span className="text-brand text-xs font-bold">1</span>
-        </div>
-        <div>
-          <p className="text-sm font-bold text-gray-800">관측 정보</p>
-          <p className="text-xs text-gray-400 mt-0.5">{formatTime(observed_at)}</p>
-        </div>
+      <p className="text-sm mb-4">
+        <span className="font-black text-gray-800">{label}</span>
+        <span className="font-medium text-gray-500 ml-1.5">위험도 {score}점</span>
+      </p>
+      <div className="flex justify-between mb-1.5">
+        <span className="text-[10px] text-gray-400">낮음</span>
+        <span className="text-[10px] text-gray-400">매우 높음</span>
       </div>
-
-      {/* 건조도 */}
-      <div className="bg-gray-50 rounded-2xl px-4 py-3.5 mb-2">
-        <p className="text-xs font-bold text-gray-700">건조도</p>
-        <MedianBar
-          labels={['촉촉함', '구겨짐', '쪼개짐', '바스라짐']}
-          value={dryness_level}
-          gradient="linear-gradient(to right, #E8D5B7, #C4A26E, #9B7740, #6B4E2A)"
+      <div className="relative">
+        <div className="h-2 rounded-full"
+          style={{ background: 'linear-gradient(to right, #81C784, #FFE300, #FF6D00, #D32F2F)' }}
+        />
+        {/* 도트 (바 위) */}
+        <div
+          className="absolute top-1/2 w-5 h-5 rounded-full bg-gray-700 border-[3px] border-white shadow-md"
+          style={{ left: `${pct}%`, transform: 'translateX(-50%) translateY(-50%)' }}
         />
       </div>
+      {/* 산출 텍스트 */}
+      <div className="relative mt-2" style={{
+        left: `clamp(0%, ${pct}%, 100%)`,
+        transform: `translateX(${pct < 20 ? '0%' : pct > 80 ? '-100%' : '-50%'})`,
+        width: 'fit-content',
+      }}>
+        <span className="text-xs text-gray-600 font-medium whitespace-nowrap">
+          건조도 {dryness} + 풍속 {wind}
+        </span>
+      </div>
+    </div>
+  )
+}
 
-      {/* 풍속 */}
-      <div className="bg-gray-50 rounded-2xl px-4 py-3.5">
-        <p className="text-xs font-bold text-gray-700">풍속</p>
-        <MedianBar
-          labels={['없음', '산들', '약함', '보통', '강함', '매우강']}
-          value={wind_level}
-          gradient="linear-gradient(to right, #B8D4E8, #7EB3D4, #4A90BD, #2968A0, #1A4E82, #0D3566)"
-        />
+function SingleCard({ obs, onPhotoClick }) {
+  const { dryness_level, wind_level, risk_score, photo_url, observed_at } = obs
+
+  return (
+    <div>
+      {/* 시간 */}
+      <p className="text-xs text-gray-400 mb-3">{formatTime(observed_at)}</p>
+
+      {/* 위험도 바 */}
+      <div className="bg-gray-50 rounded-2xl px-4 py-3.5 mb-3">
+        <RiskBar score={risk_score} dryness={dryness_level} wind={wind_level} />
+      </div>
+
+      {/* 건조도 / 풍속 2열 */}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="bg-gray-50 rounded-2xl px-4 py-3">
+          <p className="text-[10px] text-gray-500 mb-0.5">낙엽 건조도</p>
+          <p className="text-sm font-bold text-gray-800">
+            {dryness_level}단계 · {DRYNESS_LABEL[dryness_level]}
+          </p>
+        </div>
+        <div className="bg-gray-50 rounded-2xl px-4 py-3">
+          <p className="text-[10px] text-gray-500 mb-0.5">체감 풍속</p>
+          <p className="text-sm font-bold text-gray-800">
+            {wind_level}단계 · {WIND_LABEL[wind_level]}
+          </p>
+        </div>
       </div>
 
       {photo_url && (
@@ -103,39 +128,6 @@ function PhotoThumbnails({ observations, onSelect }) {
   )
 }
 
-function MedianBar({ labels, value, min, max, gradient }) {
-  const steps = labels.length
-  const pct = ((value - 1) / (steps - 1)) * 100
-  return (
-    <div>
-      <div className="relative mt-8 mb-2">
-        <div
-          className="absolute -top-6 z-10"
-          style={{ left: `${pct}%`, transform: 'translateX(-50%)' }}
-        >
-          <span className="text-xs font-bold text-gray-800">{value.toFixed(2)}</span>
-        </div>
-        <div className="h-1.5 rounded-full" style={{ background: gradient }} />
-        <div
-          className="absolute top-1/2 w-4 h-4 rounded-full bg-brand border-[3px] border-white shadow-md z-10"
-          style={{ left: `${pct}%`, transform: 'translateX(-50%) translateY(-50%)' }}
-        />
-      </div>
-      <div className="flex justify-between">
-        {labels.map((label, i) => (
-          <div key={i} className="flex flex-col items-center">
-            <span className={`text-[10px] ${Math.round(value) - 1 === i ? 'font-bold text-gray-700' : 'text-gray-400'}`}>
-              {i + 1}
-            </span>
-            <span className={`text-[9px] mt-0.5 ${Math.round(value) - 1 === i ? 'font-bold text-gray-600' : 'text-gray-300'}`}>
-              {label}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
 
 function SummaryCard({ observations }) {
   const count = observations.length
@@ -143,48 +135,37 @@ function SummaryCard({ observations }) {
   const earliest = sorted[0].observed_at
   const latest = sorted[sorted.length - 1].observed_at
 
-  const medDryness = median(observations.map(o => o.dryness_level))
-  const medWind = median(observations.map(o => o.wind_level))
-  const minDryness = Math.min(...observations.map(o => o.dryness_level))
-  const maxDryness = Math.max(...observations.map(o => o.dryness_level))
-  const minWind = Math.min(...observations.map(o => o.wind_level))
-  const maxWind = Math.max(...observations.map(o => o.wind_level))
+  const medDryness = Math.round(median(observations.map(o => o.dryness_level)))
+  const medWind = Math.round(median(observations.map(o => o.wind_level)))
+  const riskScore = calcRiskScore(medDryness, medWind)
 
   return (
     <div>
       {/* 헤더 */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-full flex-shrink-0 bg-brand/10 flex items-center justify-center">
-          <span className="text-brand text-sm font-bold">{count}</span>
-        </div>
-        <div>
-          <p className="text-sm font-bold text-gray-800">이 지역 관측</p>
-          <p className="text-xs text-gray-400 mt-0.5">{count}건 · {formatTime(earliest)} ~ {formatTime(latest)}</p>
-        </div>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-sm font-bold text-gray-800">이 지역 관측 {count}건</p>
+        <p className="text-xs text-gray-400">{formatTime(earliest)} ~ {formatTime(latest)}</p>
       </div>
 
-      {/* 건조도 */}
-      <div className="bg-gray-50 rounded-2xl px-4 py-3.5 mb-2">
-        <p className="text-sm font-bold text-gray-800">건조도</p>
-        <MedianBar
-          labels={['촉촉함', '구겨짐', '쪼개짐', '바스라짐']}
-          value={medDryness}
-          min={minDryness}
-          max={maxDryness}
-          gradient="linear-gradient(to right, #E8D5B7, #C4A26E, #9B7740, #6B4E2A)"
-        />
+      {/* 위험도 바 */}
+      <div className="bg-gray-50 rounded-2xl px-4 py-3.5 mb-3">
+        <RiskBar score={riskScore} dryness={medDryness} wind={medWind} />
       </div>
 
-      {/* 풍속 */}
-      <div className="bg-gray-50 rounded-2xl px-4 py-3.5">
-        <p className="text-sm font-bold text-gray-800">풍속</p>
-        <MedianBar
-          labels={['없음', '산들', '약함', '보통', '강함', '매우강']}
-          value={medWind}
-          min={minWind}
-          max={maxWind}
-          gradient="linear-gradient(to right, #B8D4E8, #7EB3D4, #4A90BD, #2968A0, #1A4E82, #0D3566)"
-        />
+      {/* 건조도 / 풍속 2열 */}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="bg-gray-50 rounded-2xl px-4 py-3">
+          <p className="text-[10px] text-gray-500 mb-0.5">낙엽 건조도</p>
+          <p className="text-sm font-bold text-gray-800">
+            {medDryness}단계 · {DRYNESS_LABEL[medDryness]}
+          </p>
+        </div>
+        <div className="bg-gray-50 rounded-2xl px-4 py-3">
+          <p className="text-[10px] text-gray-500 mb-0.5">체감 풍속</p>
+          <p className="text-sm font-bold text-gray-800">
+            {medWind}단계 · {WIND_LABEL[medWind]}
+          </p>
+        </div>
       </div>
     </div>
   )
