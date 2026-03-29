@@ -89,7 +89,6 @@ export default function Observe() {
         open={success}
         dryness={dryness}
         wind={wind}
-        nearbyObservations={nearbyObs}
         onClose={handleSuccessClose}
       />
 

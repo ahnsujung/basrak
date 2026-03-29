@@ -1,60 +1,15 @@
 import { CircleCheck } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
-import { median } from '@/utils/median'
+import { getRiskLabel, getRiskColor, calcRiskScore } from '@/utils/riskCalculator'
 
-const DRYNESS_LABELS = ['촉촉함', '구겨짐', '쪼개짐', '바스라짐']
-const WIND_LABELS = ['없음', '산들', '약함', '보통', '강함', '매우강']
+const DRYNESS_LABEL = ['', '촉촉함', '구겨짐', '쪼개짐', '바스라짐']
+const WIND_LABEL = ['', '없음', '산들바람', '약한 바람', '보통 바람', '강한 바람', '매우 강함']
 
-function MedianBar({ labels, value, min, max, gradient }) {
-  const steps = labels.length
-  const pct = ((value - 1) / (steps - 1)) * 100
-  return (
-    <div>
-      {/* 바 */}
-      <div className="relative mt-8 mb-2">
-        {/* 도트 위 중간값 */}
-        <div
-          className="absolute -top-6 z-10"
-          style={{ left: `${pct}%`, transform: 'translateX(-50%)' }}
-        >
-          <span className="text-xs font-bold text-gray-800">{value.toFixed(2)}</span>
-        </div>
-        <div className="h-1.5 rounded-full" style={{ background: gradient }} />
-        <div
-          className="absolute top-1/2 w-4 h-4 rounded-full bg-brand border-[3px] border-white shadow-md z-10"
-          style={{ left: `${pct}%`, transform: 'translateX(-50%) translateY(-50%)' }}
-        />
-      </div>
-
-      {/* 라벨 */}
-      <div className="flex justify-between">
-        {labels.map((label, i) => (
-          <div key={i} className="flex flex-col items-center">
-            <span className={`text-[10px] ${Math.round(value) - 1 === i ? 'font-bold text-gray-700' : 'text-gray-400'}`}>
-              {i + 1}
-            </span>
-            <span className={`text-[9px] mt-0.5 ${Math.round(value) - 1 === i ? 'font-bold text-gray-600' : 'text-gray-300'}`}>
-              {label}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-export default function SuccessSheet({ open, dryness, wind, nearbyObservations, onClose }) {
-  // 근처 관측이 있으면 중간값, 없으면 방금 입력한 값
-  const dryValues = nearbyObservations?.map(o => o.dryness_level) ?? []
-  const windValues = nearbyObservations?.map(o => o.wind_level) ?? []
-
-  const medDryness = dryValues.length > 0 ? median(dryValues) : dryness
-  const medWind = windValues.length > 0 ? median(windValues) : wind
-  const minDryness = dryValues.length > 0 ? Math.min(...dryValues) : dryness
-  const maxDryness = dryValues.length > 0 ? Math.max(...dryValues) : dryness
-  const minWind = windValues.length > 0 ? Math.min(...windValues) : wind
-  const maxWind = windValues.length > 0 ? Math.max(...windValues) : wind
+export default function SuccessSheet({ open, dryness, wind, onClose }) {
+  const score = calcRiskScore(dryness, wind)
+  const label = getRiskLabel(score)
+  const pct = ((score - 1) / 9) * 100
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -69,28 +24,44 @@ export default function SuccessSheet({ open, dryness, wind, nearbyObservations, 
           </div>
         </div>
 
-        {/* 건조도 */}
-        <div className="bg-gray-50 rounded-xl px-3.5 py-3 mb-2">
-          <p className="text-xs font-bold text-gray-700">건조도</p>
-          <MedianBar
-            labels={DRYNESS_LABELS}
-            value={medDryness}
-            min={minDryness}
-            max={maxDryness}
-            gradient="linear-gradient(to right, #E8D5B7, #C4A26E, #9B7740, #6B4E2A)"
-          />
+        {/* 위험도 바 */}
+        <div className="bg-gray-50 rounded-2xl px-4 py-3.5 mb-3">
+          <div className="relative mb-2" style={{
+            left: `${pct}%`,
+            transform: `translateX(${pct < 20 ? '0%' : pct > 80 ? '-100%' : '-50%'})`,
+            width: 'fit-content',
+          }}>
+            <span className="text-sm font-black text-gray-800">{label}</span>
+          </div>
+          <div className="relative">
+            <div className="h-2 rounded-full"
+              style={{ background: 'linear-gradient(to right, #81C784, #FFE300, #FF6D00, #D32F2F)' }}
+            />
+            <div
+              className="absolute top-1/2 w-5 h-5 rounded-full bg-gray-700 border-[3px] border-white shadow-md"
+              style={{ left: `${pct}%`, transform: 'translateX(-50%) translateY(-50%)' }}
+            />
+          </div>
+          <div className="flex justify-between mt-1.5">
+            <span className="text-[11px] text-gray-500">낮음</span>
+            <span className="text-[11px] text-gray-500">매우 높음</span>
+          </div>
         </div>
 
-        {/* 풍속 */}
-        <div className="bg-gray-50 rounded-xl px-3.5 py-3 mb-4">
-          <p className="text-xs font-bold text-gray-700">풍속</p>
-          <MedianBar
-            labels={WIND_LABELS}
-            value={medWind}
-            min={minWind}
-            max={maxWind}
-            gradient="linear-gradient(to right, #B8D4E8, #7EB3D4, #4A90BD, #2968A0, #1A4E82, #0D3566)"
-          />
+        {/* 건조도 / 풍속 2열 */}
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          <div className="bg-gray-50 rounded-2xl px-4 py-3">
+            <p className="text-[10px] text-gray-500 mb-0.5">낙엽 건조도</p>
+            <p className="text-sm font-bold text-gray-800">
+              {dryness}단계 · {DRYNESS_LABEL[dryness]}
+            </p>
+          </div>
+          <div className="bg-gray-50 rounded-2xl px-4 py-3">
+            <p className="text-[10px] text-gray-500 mb-0.5">체감 풍속</p>
+            <p className="text-sm font-bold text-gray-800">
+              {wind}단계 · {WIND_LABEL[wind]}
+            </p>
+          </div>
         </div>
 
         <Button fullWidth onClick={onClose}>
