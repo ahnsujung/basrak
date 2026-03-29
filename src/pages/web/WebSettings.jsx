@@ -124,7 +124,7 @@ function DrynessPhotoCard({ index, label, url, onUploaded }) {
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         onClick={() => fileRef.current?.click()}
-        className={`relative w-full h-28 rounded-lg border-2 border-dashed cursor-pointer transition-colors overflow-hidden ${
+        className={`relative w-full aspect-square rounded-lg border-2 border-dashed cursor-pointer transition-colors overflow-hidden ${
           dragOver ? 'border-brand-light bg-brand-light/5' : 'border-gray-200 hover:border-gray-300'
         }`}
       >
@@ -322,7 +322,7 @@ export default function WebSettings() {
         {/* 건조도 참고 사진 */}
         <div className="bg-white border border-gray-200 rounded-xl p-5">
           <h3 className="text-sm font-semibold text-gray-800 mb-3">건조도 참고 사진</h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-4 gap-3">
             {['촉촉함', '구겨짐', '쪼개짐', '바스라짐'].map((label, i) => (
               <DrynessPhotoCard
                 key={i}
