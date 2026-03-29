@@ -17,8 +17,8 @@ export default function Auth() {
   }, [user, navigate, from])
 
   return (
-    <PageLayout className="justify-center">
-      <div className="bg-white rounded-2xl p-6 shadow-sm">
+    <div className="min-h-dvh bg-gray-50 flex items-center justify-center px-5">
+      <div className="w-full max-w-sm bg-white rounded-2xl p-6 shadow-sm">
         <div className="flex flex-col items-center gap-2 mb-8">
           <span className="text-5xl">🍂</span>
           <h1 className="typo-page-title">바스락</h1>
@@ -56,6 +56,6 @@ export default function Auth() {
           />
         )}
       </div>
-    </PageLayout>
+    </div>
   )
 }
