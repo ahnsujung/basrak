@@ -18,6 +18,7 @@ import WebObservations from '@/pages/web/WebObservations'
 import WebUsers from '@/pages/web/WebUsers'
 import WebNotices from '@/pages/web/WebNotices'
 import WebIndex from '@/pages/web/WebIndex'
+import WebSettings from '@/pages/web/WebSettings'
 
 export default function App() {
   return (
@@ -40,6 +41,7 @@ export default function App() {
             <Route path="users" element={<WebUsers />} />
             <Route path="notices" element={<WebNotices />} />
             <Route path="index" element={<WebIndex />} />
+            <Route path="settings" element={<WebSettings />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

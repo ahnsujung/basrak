@@ -73,6 +73,9 @@ export default function PhotoAttach({ photo, onChange }) {
           <span className="text-sm">사진 추가</span>
         </button>
       )}
+      <p className="text-[10px] text-gray-400 mt-2 leading-relaxed">
+        첨부해주신 사진은 국립산림과학원의 연구에 소중한 자료로 사용됩니다. 감사합니다.
+      </p>
     </section>
   )
 }

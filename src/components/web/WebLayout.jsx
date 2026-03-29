@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Database, Users, Megaphone, BarChart3, LogOut } from 'lucide-react'
+import { LayoutDashboard, Database, Users, Megaphone, BarChart3, Settings, LogOut } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 
 const NAV_ITEMS = [
@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { to: '/admin_web/users', icon: Users, label: '사용자 관리' },
   { to: '/admin_web/notices', icon: Megaphone, label: '공지 관리' },
   { to: '/admin_web/index', icon: BarChart3, label: '바스락 지수' },
+  { to: '/admin_web/settings', icon: Settings, label: '앱 관리' },
 ]
 
 export default function WebLayout() {

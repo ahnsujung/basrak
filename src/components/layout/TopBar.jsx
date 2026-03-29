@@ -39,15 +39,8 @@ export default function TopBar({ title, right, sub = false }) {
   }
 
   return (
-    <header
-      className={`sticky top-0 z-20 shrink-0 transition-all duration-300 ${
-        scrolled
-          ? 'h-12 bg-brand/90 backdrop-blur-md shadow-md'
-          : 'h-16 bg-brand'
-      }`}
-    >
+    <header className="sticky top-0 z-20 shrink-0 h-14 bg-brand">
       <div className="h-full flex items-center px-4">
-        {/* 좌측: 뒤로가기 또는 앱명 */}
         {!isHome ? (
           <button onClick={() => navigate(-1)} className="p-1 -ml-1 text-white/80 hover:text-white mr-2">
             <ChevronLeft size={22} />
@@ -56,24 +49,12 @@ export default function TopBar({ title, right, sub = false }) {
 
         <div className="flex-1 min-w-0">
           {isHome ? (
-            <div className={`flex items-baseline gap-2 transition-all duration-300 ${scrolled ? 'gap-1.5' : ''}`}>
-              <span className={`font-extrabold text-white tracking-widest transition-all duration-300 ${
-                scrolled ? 'text-base' : 'text-xl'
-              }`}>
-                바스락
-              </span>
-              <span className={`text-white/50 font-medium transition-all duration-300 ${
-                scrolled ? 'text-[10px]' : 'text-xs'
-              }`}>
-                시민 산불 감시 플랫폼
-              </span>
+            <div className="flex items-baseline gap-2">
+              <span className="text-lg font-extrabold text-white tracking-widest">바스락</span>
+              <span className="text-xs text-white/50 font-medium">시민 산불 감시 플랫폼</span>
             </div>
           ) : (
-            <span className={`font-bold text-white truncate transition-all duration-300 ${
-              scrolled ? 'text-sm' : 'text-base'
-            }`}>
-              {title}
-            </span>
+            <span className="text-sm font-bold text-white truncate">{title}</span>
           )}
         </div>
 
