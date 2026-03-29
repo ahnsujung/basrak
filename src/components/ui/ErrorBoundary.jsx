@@ -21,7 +21,7 @@ export default class ErrorBoundary extends Component {
           <p className="text-sm text-gray-500 mb-4">앱을 다시 불러와 주세요</p>
           <button
             onClick={() => window.location.reload()}
-            className="bg-brand text-white rounded-xl px-5 py-2.5 text-sm font-medium"
+            className="bg-brand-light text-white rounded-2xl shadow-md px-5 py-2.5 text-sm font-medium"
           >
             새로고침
           </button>

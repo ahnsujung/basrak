@@ -87,14 +87,14 @@ export default function AdminNotices() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="제목"
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-brand focus:bg-white transition-colors"
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-brand-light focus:bg-white transition-colors"
         />
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="내용"
           rows={4}
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-brand focus:bg-white transition-colors resize-none"
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-brand-light focus:bg-white transition-colors resize-none"
         />
         <div className="flex items-center justify-between">
           <label className="flex items-center gap-2 text-sm text-gray-600">
@@ -109,7 +109,7 @@ export default function AdminNotices() {
           <button
             type="submit"
             disabled={submitting}
-            className="bg-brand text-white rounded-xl px-5 py-2.5 text-sm font-medium disabled:opacity-50"
+            className="bg-brand-light text-white rounded-2xl shadow-md px-5 py-2.5 text-sm font-medium disabled:opacity-50"
           >
             {submitting ? (editId ? '수정 중...' : '등록 중...') : (editId ? '수정' : '등록')}
           </button>

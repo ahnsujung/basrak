@@ -1,8 +1,18 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageLayout from '@/components/layout/PageLayout'
 import { Pin, Plus, Minus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { getRiskColor } from '@/utils/riskCalculator'
+
+const RISK_MATRIX = [
+  [1, 1, 2, 2, 3, 3],
+  [3, 3, 4, 5, 5, 6],
+  [5, 5, 6, 7, 7, 8],
+  [7, 7, 8, 9, 9, 10],
+]
+const DRYNESS_LABELS = ['촉촉', '구겨짐', '쪼개짐', '바스락']
+const WIND_LABELS = ['없음', '산들', '약함', '보통', '강함', '매우강함']
 
 const SECTIONS = [
   {
@@ -112,10 +122,49 @@ export default function About() {
         </div>
       </div>
 
+      {/* 위험지수 매트릭스 */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm">
+        <p className="text-sm font-bold text-gray-900 mb-1">위험지수 산출 기준</p>
+        <p className="text-[10px] text-gray-400 mb-4">건조도와 풍속 조합으로 위험도가 결정됩니다</p>
+        <div className="grid grid-cols-[auto_repeat(6,1fr)] gap-[2px] text-center">
+          {/* 헤더: 풍속 */}
+          <div />
+          {WIND_LABELS.map((w, i) => (
+            <div key={w} className="text-[11px] text-gray-500 pb-1">{w}</div>
+          ))}
+          {/* 행: 건조도 */}
+          {RISK_MATRIX.map((row, di) => (
+            <React.Fragment key={di}>
+              <div className="text-[11px] text-gray-500 pr-1.5 flex items-center justify-end text-right">{DRYNESS_LABELS[di]}</div>
+              {row.map((score, wi) => (
+                <div
+                  key={wi}
+                  className="rounded-sm py-3.5"
+                  style={{ backgroundColor: getRiskColor(score) }}
+                />
+              ))}
+            </React.Fragment>
+          ))}
+        </div>
+        <div className="flex items-center justify-center gap-3 mt-3">
+          {[
+            { label: '낮음', color: '#81C784' },
+            { label: '보통', color: '#FFE300' },
+            { label: '높음', color: '#FF6D00' },
+            { label: '매우높음', color: '#D32F2F' },
+          ].map(({ label, color }) => (
+            <div key={label} className="flex items-center gap-1">
+              <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: color }} />
+              <span className="text-[10px] text-gray-500">{label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* CTA */}
       <button
         onClick={() => navigate('/observe')}
-        className="w-full bg-brand text-white rounded-2xl py-3.5 font-bold text-sm active:scale-[0.97] transition-transform shadow-sm"
+        className="w-full bg-brand-light text-white rounded-2xl py-3.5 font-bold text-sm active:scale-[0.97] transition-transform shadow-md"
       >
         관측 시작하기
       </button>

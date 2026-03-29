@@ -17,7 +17,7 @@ export default function EmptyMapOverlay({ onObserve }) {
         </div>
         <button
           onClick={onObserve}
-          className="w-full bg-brand text-white rounded-xl py-3 font-bold text-sm active:scale-[0.97] transition-transform"
+          className="w-full bg-brand-light text-white rounded-2xl shadow-md py-3 font-bold text-sm active:scale-[0.97] transition-transform"
         >
           첫 관측 시작하기
         </button>

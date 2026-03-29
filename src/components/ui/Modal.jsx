@@ -5,7 +5,11 @@ export default function Modal({ open, onClose, children }) {
     if (!open) return
     const onKey = (e) => e.key === 'Escape' && onClose?.()
     document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = ''
+    }
   }, [open, onClose])
 
   if (!open) return null

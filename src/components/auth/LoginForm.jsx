@@ -29,7 +29,7 @@ export default function LoginForm({ onSubmit, onSwitch }) {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="email@example.com"
           required
-          className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm outline-none focus:border-brand focus:bg-white transition-colors"
+          className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm outline-none focus:border-brand-light focus:bg-white transition-colors"
         />
       </div>
       <div className="flex flex-col gap-1.5">
@@ -40,14 +40,14 @@ export default function LoginForm({ onSubmit, onSwitch }) {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="6자 이상"
           required
-          className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm outline-none focus:border-brand focus:bg-white transition-colors"
+          className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm outline-none focus:border-brand-light focus:bg-white transition-colors"
         />
       </div>
       {error && <p className="text-sm text-red-500">{error}</p>}
       <button
         type="submit"
         disabled={loading}
-        className="bg-brand text-white rounded-xl py-3.5 text-sm font-medium disabled:opacity-50 transition-opacity"
+        className="bg-brand-light text-white rounded-2xl shadow-md py-3.5 text-sm font-medium disabled:opacity-50 transition-opacity"
       >
         {loading ? '로그인 중...' : '로그인'}
       </button>

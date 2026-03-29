@@ -67,7 +67,7 @@ export default function PhotoAttach({ photo, onChange }) {
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="w-full h-24 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-brand hover:text-brand transition-colors active:scale-[0.98]"
+          className="w-full h-24 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-brand-light hover:text-brand-light transition-colors active:scale-[0.98]"
         >
           <Camera size={24} className="text-gray-400" />
           <span className="text-sm">사진 추가</span>

@@ -42,7 +42,7 @@ export default function InstallCard() {
       onClick={ios ? undefined : handleInstall}
       className="bg-brand/5 rounded-2xl p-4 shadow-sm w-full flex items-center gap-3 text-left active:bg-brand/10 transition-colors"
     >
-      <div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center shrink-0">
+      <div className="w-10 h-10 rounded-xl bg-brand-light flex items-center justify-center shrink-0">
         <Download size={20} className="text-white" />
       </div>
       <div className="flex-1 min-w-0">

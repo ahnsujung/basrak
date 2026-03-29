@@ -104,7 +104,7 @@ export default function InstallBanner() {
               </button>
               <button
                 onClick={handleInstall}
-                className="flex-1 text-sm font-semibold text-white bg-brand rounded-xl py-2.5"
+                className="flex-1 text-sm font-semibold text-white bg-brand-light rounded-2xl shadow-md py-2.5"
               >
                 설치하기
               </button>

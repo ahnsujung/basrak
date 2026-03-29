@@ -39,7 +39,7 @@ export default function NicknameModal({ open, onSave, onClose, initialValue = ''
         onKeyDown={(e) => e.key === 'Enter' && handleSave()}
         placeholder="닉네임 입력 (2~12자)"
         maxLength={12}
-        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:border-brand focus:bg-white transition-colors mb-1"
+        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:border-brand-light focus:bg-white transition-colors mb-1"
         autoFocus
       />
       {error && <p className="text-xs text-red-500 mb-2">{error}</p>}

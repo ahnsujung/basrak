@@ -74,7 +74,7 @@ export default function MilestoneModal({ count, onClose }) {
 
         <button
           onClick={onClose}
-          className="w-full bg-brand text-white rounded-xl py-3 font-bold"
+          className="w-full bg-brand-light text-white rounded-2xl shadow-md py-3 font-bold"
         >
           지도 확인하기
         </button>

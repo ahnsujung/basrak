@@ -1,5 +1,5 @@
 const variants = {
-  primary: 'bg-brand text-white hover:bg-brand-hover active:bg-brand-active',
+  primary: 'bg-brand-light text-white hover:bg-brand-light-hover active:bg-brand-light-active shadow-md',
   secondary: 'bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100 active:bg-gray-200',
   danger: 'bg-red-500 text-white hover:bg-red-600 active:bg-red-700',
   ghost: 'bg-transparent text-gray-600 hover:bg-gray-50 active:bg-gray-100',
@@ -28,7 +28,7 @@ export default function Button({
       disabled={disabled || loading}
       onClick={onClick}
       className={[
-        'inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-colors',
+        'inline-flex items-center justify-center gap-2 rounded-2xl font-medium transition-colors',
         'disabled:opacity-40 disabled:cursor-not-allowed',
         variants[variant],
         sizes[size],
