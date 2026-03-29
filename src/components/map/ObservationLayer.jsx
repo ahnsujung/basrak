@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import L from 'leaflet'
-import 'leaflet.heat'
-import { supabase } from '@/lib/supabase'
+// import 'leaflet.heat'
+// import { supabase } from '@/lib/supabase'
 import { renderCircleMode } from '@/utils/circleMode'
-import { getRiskColor } from '@/utils/riskCalculator'
-import { risk } from '@/constants/theme'
+// import { getRiskColor } from '@/utils/riskCalculator'
+// import { risk } from '@/constants/theme'
 
+/* 히트맵 모드 — 줌 레벨별 전환 구현 후 활성화
 function useHeatmapGrid() {
   const [gridData, setGridData] = useState(null)
 
@@ -27,48 +28,6 @@ function useHeatmapGrid() {
   }, [])
 
   return gridData
-}
-
-export default function ObservationLayer({ map, observations, totalCount, onSelect }) {
-  const layerGroupRef = useRef(null)
-  const gridData = useHeatmapGrid()
-
-  useEffect(() => {
-    if (!map) return
-
-    if (!layerGroupRef.current) {
-      layerGroupRef.current = L.layerGroup().addTo(map)
-    }
-
-    return () => {
-      layerGroupRef.current?.remove()
-      layerGroupRef.current = null
-    }
-  }, [map])
-
-  useEffect(() => {
-    if (!map || !layerGroupRef.current) return
-
-    layerGroupRef.current.clearLayers()
-
-    const mode = totalCount >= 100 ? 'heatmap' : 'circles'
-
-    if (mode === 'circles') {
-      renderCircleMode(layerGroupRef.current, observations, totalCount, (clicked) => {
-        // 줌 레벨에 따라 근접 범위 동적 조정
-        const zoom = map.getZoom()
-        const threshold = 0.5 / Math.pow(2, zoom - 7) // 줌7: 0.5도(~50km), 줌10: 0.06도(~6km), 줌13: 0.008도(~800m)
-        const nearby = observations.filter(o =>
-          Math.abs(o.lat - clicked.lat) < threshold && Math.abs(o.lng - clicked.lng) < threshold
-        )
-        onSelect?.(nearby.length > 1 ? nearby : clicked)
-      })
-    } else {
-      renderHeatmap(layerGroupRef.current, observations, gridData)
-    }
-  }, [map, observations, totalCount, gridData]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  return null
 }
 
 function renderHeatmap(layerGroup, observations, gridData) {
@@ -99,4 +58,39 @@ function renderHeatmap(layerGroup, observations, gridData) {
       .bindPopup(`위험도: ${obs.risk_score}/10`)
       .addTo(layerGroup)
   })
+}
+*/
+
+export default function ObservationLayer({ map, observations, totalCount, onSelect }) {
+  const layerGroupRef = useRef(null)
+
+  useEffect(() => {
+    if (!map) return
+
+    if (!layerGroupRef.current) {
+      layerGroupRef.current = L.layerGroup().addTo(map)
+    }
+
+    return () => {
+      layerGroupRef.current?.remove()
+      layerGroupRef.current = null
+    }
+  }, [map])
+
+  useEffect(() => {
+    if (!map || !layerGroupRef.current) return
+
+    layerGroupRef.current.clearLayers()
+
+    renderCircleMode(layerGroupRef.current, observations, totalCount, (clicked) => {
+      const zoom = map.getZoom()
+      const threshold = 0.5 / Math.pow(2, zoom - 7)
+      const nearby = observations.filter(o =>
+        Math.abs(o.lat - clicked.lat) < threshold && Math.abs(o.lng - clicked.lng) < threshold
+      )
+      onSelect?.(nearby.length > 1 ? nearby : clicked)
+    })
+  }, [map, observations, totalCount]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  return null
 }
