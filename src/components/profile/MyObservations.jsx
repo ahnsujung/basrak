@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { Trash2 } from 'lucide-react'
 import Badge from '@/components/ui/Badge'
 import Spinner from '@/components/ui/Spinner'
 import { getRiskLabel } from '@/utils/riskCalculator'
@@ -36,7 +38,21 @@ const RISK_VARIANT = (score) => {
 }
 
 export default function MyObservations({ userId }) {
-  const { observations, loading, error } = useMyObservations(userId)
+  const { observations, loading, error, deleteObservation } = useMyObservations(userId)
+  const [deleting, setDeleting] = useState(null)
+  const [showCount, setShowCount] = useState(5)
+
+  const handleDelete = async (obs) => {
+    if (!confirm('이 관측을 삭제할까요?')) return
+    setDeleting(obs.id)
+    try {
+      await deleteObservation(obs.id, obs.photo_url)
+    } catch {
+      alert('삭제에 실패했습니다')
+    } finally {
+      setDeleting(null)
+    }
+  }
 
   if (loading) return <div className="flex justify-center py-6"><Spinner /></div>
   if (error) return <p className="text-sm text-red-500 text-center py-6">{error}</p>
@@ -44,7 +60,7 @@ export default function MyObservations({ userId }) {
 
   return (
     <div className="flex flex-col">
-      {observations.map((obs) => (
+      {observations.slice(0, showCount).map((obs) => (
         <div key={obs.id} className="flex items-center gap-3 py-3.5 border-b border-gray-100 last:border-0">
           {obs.photo_url ? (
             <img src={obs.photo_url} alt="" className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
@@ -69,8 +85,23 @@ export default function MyObservations({ userId }) {
               })}
             </p>
           </div>
+          <button
+            onClick={() => handleDelete(obs)}
+            disabled={deleting === obs.id}
+            className="p-2 text-gray-300 hover:text-red-400 active:text-red-500 transition-colors disabled:opacity-50 shrink-0"
+          >
+            <Trash2 size={16} />
+          </button>
         </div>
       ))}
+      {observations.length > showCount && (
+        <button
+          onClick={() => setShowCount((c) => Math.min(c + 5, 30))}
+          className="text-xs text-gray-400 py-3 text-center"
+        >
+          더보기 ({observations.length - showCount}건)
+        </button>
+      )}
     </div>
   )
 }

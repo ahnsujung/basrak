@@ -15,7 +15,7 @@ export function useMyObservations(userId) {
       .select('id, lat, lng, dryness_level, wind_level, risk_score, photo_url, observed_at, address')
       .eq('user_id', userId)
       .order('observed_at', { ascending: false })
-      .limit(20)
+      .limit(30)
       .then(({ data, error: err }) => {
         if (!mounted) return
         if (err) {
@@ -34,5 +34,27 @@ export function useMyObservations(userId) {
     return () => { mounted = false }
   }, [userId])
 
-  return { observations, loading, error }
+  const deleteObservation = async (id, photoUrl) => {
+    // R2 사진 삭제
+    if (photoUrl) {
+      const r2Public = import.meta.env.VITE_R2_PUBLIC_URL
+      const workerUrl = import.meta.env.VITE_R2_WORKER_URL
+      if (r2Public && workerUrl && photoUrl.startsWith(r2Public)) {
+        const key = photoUrl.replace(r2Public + '/', '')
+        await fetch(`${workerUrl}/${key}`, { method: 'DELETE' }).catch(() => {})
+      }
+    }
+
+    // DB에서 관측 삭제
+    const { error: err } = await supabase
+      .from('observations')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId)
+
+    if (err) throw err
+    setObservations((prev) => prev.filter((o) => o.id !== id))
+  }
+
+  return { observations, loading, error, deleteObservation }
 }
