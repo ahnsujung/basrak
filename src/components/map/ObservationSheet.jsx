@@ -12,40 +12,35 @@ function formatTime(dateStr) {
   })
 }
 
-function RiskBar({ score, dryness, wind }) {
-  const color = getRiskColor(score)
+const RISK_LEVELS = [
+  { label: '낮음', color: '#81C784' },
+  { label: '보통', color: '#FFE300' },
+  { label: '높음', color: '#FF6D00' },
+  { label: '매우높음', color: '#D32F2F' },
+]
+
+function RiskBar({ score }) {
   const label = getRiskLabel(score)
   const pct = ((score - 1) / 9) * 100
 
   return (
     <div>
-      <p className="text-sm mb-4">
-        <span className="font-black text-gray-800">{label}</span>
-        <span className="font-medium text-gray-500 ml-1.5">위험도 {score}점</span>
-      </p>
-      <div className="flex justify-between mb-1.5">
-        <span className="text-[10px] text-gray-400">낮음</span>
-        <span className="text-[10px] text-gray-400">매우 높음</span>
+      {/* 도트 위 상태 라벨 */}
+      <div className="relative mb-2" style={{ left: `${pct}%`, transform: `translateX(${pct < 20 ? '0%' : pct > 80 ? '-100%' : '-50%'})`, width: 'fit-content' }}>
+        <span className="text-sm font-black text-gray-800">{label}</span>
       </div>
       <div className="relative">
         <div className="h-2 rounded-full"
           style={{ background: 'linear-gradient(to right, #81C784, #FFE300, #FF6D00, #D32F2F)' }}
         />
-        {/* 도트 (바 위) */}
         <div
           className="absolute top-1/2 w-5 h-5 rounded-full bg-gray-700 border-[3px] border-white shadow-md"
           style={{ left: `${pct}%`, transform: 'translateX(-50%) translateY(-50%)' }}
         />
       </div>
-      {/* 산출 텍스트 */}
-      <div className="relative mt-2" style={{
-        left: `clamp(0%, ${pct}%, 100%)`,
-        transform: `translateX(${pct < 20 ? '0%' : pct > 80 ? '-100%' : '-50%'})`,
-        width: 'fit-content',
-      }}>
-        <span className="text-xs text-gray-600 font-medium whitespace-nowrap">
-          건조도 {dryness} + 풍속 {wind}
-        </span>
+      <div className="flex justify-between mt-1.5">
+        <span className="text-[10px] text-gray-400">낮음</span>
+        <span className="text-[10px] text-gray-400">매우 높음</span>
       </div>
     </div>
   )
@@ -61,7 +56,7 @@ function SingleCard({ obs, onPhotoClick }) {
 
       {/* 위험도 바 */}
       <div className="bg-gray-50 rounded-2xl px-4 py-3.5 mb-3">
-        <RiskBar score={risk_score} dryness={dryness_level} wind={wind_level} />
+        <RiskBar score={risk_score} />
       </div>
 
       {/* 건조도 / 풍속 2열 */}
@@ -149,7 +144,7 @@ function SummaryCard({ observations }) {
 
       {/* 위험도 바 */}
       <div className="bg-gray-50 rounded-2xl px-4 py-3.5 mb-3">
-        <RiskBar score={riskScore} dryness={medDryness} wind={medWind} />
+        <RiskBar score={riskScore} />
       </div>
 
       {/* 건조도 / 풍속 2열 */}

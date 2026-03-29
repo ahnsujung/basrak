@@ -107,9 +107,6 @@ export default function About() {
               <span className="text-2xl">{icon}</span>
               <p className="text-xs font-semibold text-gray-800">{label}</p>
               <p className="text-[10px] text-gray-400 leading-snug">{desc}</p>
-              {i < STEPS.length - 1 && (
-                <span className="absolute text-gray-300">&rarr;</span>
-              )}
             </div>
           ))}
         </div>
