@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Button from '@/components/ui/Button'
 
 const SLIDES = [
   {
@@ -47,7 +48,8 @@ export default function OnboardingSlides({ onDone }) {
   const slide = SLIDES[page]
 
   return (
-    <div className="fixed inset-0 z-50 bg-brand flex flex-col items-center justify-center px-8">
+    <div className="fixed inset-0 z-50 bg-black/50 flex justify-center">
+    <div className="w-full max-w-lg bg-brand flex flex-col items-center justify-center px-8 relative">
       {/* 슬라이드 내용 */}
       <div className="flex flex-col items-center text-center">
         <span className="text-7xl mb-6">{slide.emoji}</span>
@@ -74,12 +76,14 @@ export default function OnboardingSlides({ onDone }) {
         </div>
 
         {/* 버튼 */}
-        <button
+        <Button
           onClick={handleNext}
-          className="w-full max-w-xs py-3.5 rounded-2xl bg-white text-brand font-bold text-base active:scale-[0.97] transition-transform"
+          size="lg"
+          fullWidth
+          className="max-w-xs !bg-white !text-brand"
         >
           {isLast ? '시작하기' : '다음'}
-        </button>
+        </Button>
 
         {/* 건너뛰기 */}
         {!isLast && (
@@ -91,6 +95,7 @@ export default function OnboardingSlides({ onDone }) {
           </button>
         )}
       </div>
+    </div>
     </div>
   )
 }
