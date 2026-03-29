@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import OnboardingSlides, { useOnboarding } from '@/components/onboarding/OnboardingSlides'
 import PageLayout from '@/components/layout/PageLayout'
-import KakaoMap from '@/components/map/KakaoMap'
+import LeafletMap from '@/components/map/LeafletMap'
 import ObservationLayer from '@/components/map/ObservationLayer'
 import MapLegend from '@/components/map/MapLegend'
 import ObservationSheet from '@/components/map/ObservationSheet'
@@ -39,7 +39,7 @@ export default function Home() {
         hasShield={profile?.streak_shield > 0}
       />
       <div className="flex-1 relative overflow-hidden">
-        <KakaoMap onMapReady={setMap} coords={coords} />
+        <LeafletMap onMapReady={setMap} coords={coords} />
         <MapLegend count={loading ? null : observations.length} />
 
         {loading && (

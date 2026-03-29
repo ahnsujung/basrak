@@ -10,7 +10,7 @@ L.Icon.Default.mergeOptions({
 })
 
 
-export default function KakaoMap({ onMapReady, coords }) {
+export default function LeafletMap({ onMapReady, coords }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const myLocMarkerRef = useRef(null)

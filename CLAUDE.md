@@ -78,4 +78,4 @@ VITE_VWORLD_KEY          # optional, for VWorld map tiles
 - Risk colors: green (#4CAF50) ≤3, yellow (#FFC107) ≤5, orange (#FF9800) ≤7, red (#F44336) >7
 - npm uses `legacy-peer-deps=true` (.npmrc)
 - Supabase client initialized once in `src/lib/supabase.js` — never re-initialize elsewhere
-- Map component is named KakaoMap.jsx but uses Leaflet (historical naming from migration)
+- Map component: `LeafletMap.jsx` (Leaflet.js 기반)

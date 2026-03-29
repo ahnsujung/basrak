@@ -75,6 +75,78 @@ function TermsSection({ label, value, onChange, placeholder, sampleFile }) {
   )
 }
 
+function DrynessPhotoCard({ index, label, url, onUploaded }) {
+  const [uploading, setUploading] = useState(false)
+  const [dragOver, setDragOver] = useState(false)
+  const fileRef = useRef(null)
+
+  const uploadToR2 = async (file) => {
+    const workerUrl = import.meta.env.VITE_R2_WORKER_URL
+    const publicUrl = import.meta.env.VITE_R2_PUBLIC_URL
+    if (!workerUrl || !publicUrl) return
+
+    setUploading(true)
+    try {
+      const ext = file.name.split('.').pop() || 'jpg'
+      const key = `dryness/${index + 1}_${Date.now()}.${ext}`
+      const res = await fetch(`${workerUrl}/${key}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type || 'image/jpeg' },
+        body: file,
+      })
+      if (!res.ok) throw new Error('업로드 실패')
+      onUploaded(`${publicUrl}/${key}`)
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setDragOver(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file?.type.startsWith('image/')) uploadToR2(file)
+  }
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0]
+    if (file) uploadToR2(file)
+    e.target.value = ''
+  }
+
+  return (
+    <div>
+      <label className="text-xs text-gray-500 mb-1 block">{index + 1}단계 · {label}</label>
+      <div
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={handleDrop}
+        onClick={() => fileRef.current?.click()}
+        className={`relative w-full h-28 rounded-lg border-2 border-dashed cursor-pointer transition-colors overflow-hidden ${
+          dragOver ? 'border-brand-light bg-brand-light/5' : 'border-gray-200 hover:border-gray-300'
+        }`}
+      >
+        {url ? (
+          <img src={url} alt={label} className="w-full h-full object-cover" />
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-gray-400">
+            <Upload size={20} />
+            <span className="text-[10px] mt-1">드래그 또는 클릭</span>
+          </div>
+        )}
+        {uploading && (
+          <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
+            <span className="text-xs text-gray-500">업로드 중...</span>
+          </div>
+        )}
+      </div>
+      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+    </div>
+  )
+}
+
 function AdminManager() {
   const [admins, setAdmins] = useState([])
   const [email, setEmail] = useState('')
@@ -249,22 +321,16 @@ export default function WebSettings() {
 
         {/* 건조도 참고 사진 */}
         <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">건조도 참고 사진 URL</h3>
+          <h3 className="text-sm font-semibold text-gray-800 mb-3">건조도 참고 사진</h3>
           <div className="grid grid-cols-2 gap-3">
             {['촉촉함', '구겨짐', '쪼개짐', '바스라짐'].map((label, i) => (
-              <div key={i}>
-                <label className="text-xs text-gray-500 mb-1 block">{i + 1}단계 · {label}</label>
-                <input
-                  type="text"
-                  value={config.dryness_photos[i]}
-                  onChange={(e) => updateDrynessPhoto(i, e.target.value)}
-                  placeholder="이미지 URL"
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-brand-light"
-                />
-                {config.dryness_photos[i] && (
-                  <img src={config.dryness_photos[i]} alt={label} className="w-full h-24 object-cover rounded-lg mt-1" />
-                )}
-              </div>
+              <DrynessPhotoCard
+                key={i}
+                index={i}
+                label={label}
+                url={config.dryness_photos[i]}
+                onUploaded={(url) => updateDrynessPhoto(i, url)}
+              />
             ))}
           </div>
         </div>
