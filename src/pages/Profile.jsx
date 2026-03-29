@@ -121,7 +121,7 @@ export default function Profile() {
       {/* 관리자 */}
       {isAdmin && (
         <button
-          onClick={() => navigate('/admin')}
+          onClick={() => navigate('/admin_mobile')}
           className="bg-white rounded-2xl shadow-sm w-full flex items-center gap-3 px-4 py-3.5 active:bg-gray-50 transition-colors"
         >
           <Shield size={18} className="text-brand" />

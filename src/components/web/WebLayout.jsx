@@ -3,11 +3,11 @@ import { LayoutDashboard, Database, Users, Megaphone, BarChart3, LogOut } from '
 import { useAuth } from '@/hooks/useAuth'
 
 const NAV_ITEMS = [
-  { to: '/web', icon: LayoutDashboard, label: '대시보드', end: true },
-  { to: '/web/observations', icon: Database, label: '관측 데이터' },
-  { to: '/web/users', icon: Users, label: '사용자 관리' },
-  { to: '/web/notices', icon: Megaphone, label: '공지 관리' },
-  { to: '/web/index', icon: BarChart3, label: '바스락 지수' },
+  { to: '/admin_web', icon: LayoutDashboard, label: '대시보드', end: true },
+  { to: '/admin_web/observations', icon: Database, label: '관측 데이터' },
+  { to: '/admin_web/users', icon: Users, label: '사용자 관리' },
+  { to: '/admin_web/notices', icon: Megaphone, label: '공지 관리' },
+  { to: '/admin_web/index', icon: BarChart3, label: '바스락 지수' },
 ]
 
 export default function WebLayout() {

@@ -266,7 +266,7 @@ export default function AdminDashboard() {
       {/* 관리 메뉴 */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden divide-y divide-gray-50">
         <button
-          onClick={() => navigate('/admin/users')}
+          onClick={() => navigate('/admin_mobile/users')}
           className="w-full flex items-center justify-between px-4 py-3.5 active:bg-gray-50 transition-colors"
         >
           <div className="flex items-center gap-3">
@@ -276,7 +276,7 @@ export default function AdminDashboard() {
           <ChevronRight size={18} className="text-gray-300" />
         </button>
         <button
-          onClick={() => navigate('/admin/notices')}
+          onClick={() => navigate('/admin_mobile/notices')}
           className="w-full flex items-center justify-between px-4 py-3.5 active:bg-gray-50 transition-colors"
         >
           <div className="flex items-center gap-3">

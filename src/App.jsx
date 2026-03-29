@@ -30,11 +30,11 @@ export default function App() {
           <Route path="/observe" element={<Observe />} />
           <Route path="/about" element={<About />} />
           <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
-          <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
-          <Route path="/admin/users" element={<RequireAdmin><AdminUsers /></RequireAdmin>} />
-          <Route path="/admin/notices" element={<RequireAdmin><AdminNotices /></RequireAdmin>} />
+          <Route path="/admin_mobile" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
+          <Route path="/admin_mobile/users" element={<RequireAdmin><AdminUsers /></RequireAdmin>} />
+          <Route path="/admin_mobile/notices" element={<RequireAdmin><AdminNotices /></RequireAdmin>} />
           <Route path="/dev/map-test" element={<MapTest />} />
-          <Route path="/web" element={<RequireAdmin><WebLayout /></RequireAdmin>}>
+          <Route path="/admin_web" element={<RequireAdmin><WebLayout /></RequireAdmin>}>
             <Route index element={<WebDashboard />} />
             <Route path="observations" element={<WebObservations />} />
             <Route path="users" element={<WebUsers />} />
