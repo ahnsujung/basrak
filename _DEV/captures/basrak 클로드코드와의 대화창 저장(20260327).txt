@@ -1,0 +1,631 @@
+# Session 8 — 희소 데이터 대응 지도 시각화
+
+> 바스락 프로젝트 개발 세션  
+> 선행 세션 완료 필요: Session 1~7
+
+---
+
+## 목표
+
+관측점이 0~50개인 초기 단계에서도 지도가 **과학적으로 보이고 예쁘게** 보이도록 시각화 개선.  
+100번째 관측 시 **마일스톤 축하 화면 + 지도 시각화 모드 전환** 구현.
+
+---
+
+## 설계 원칙
+
+### 두 가지 모드
+
+| 모드 | 조건 | 시각화 방식 |
+|------|------|------------|
+| **영향권 원 모드** | 관측 100개 미만 | 마커 + 반투명 영향권 원 (IDW 거리 가중치 → opacity) |
+| **히트맵 모드** | 관측 100개 이상 | Leaflet 격자 히트맵 |
+
+### 희소 데이터 원칙
+- 관측점이 적을수록 영향권 원을 **크게** → 빈 지도처럼 안 보임
+- opacity = IDW 거리 가중치 → "이 지역은 관측이 없어 불확실" 자연스럽게 표현
+- 전국 산림 GeoJSON을 배경에 회색으로 깔기 → 공백이 "미관측"으로 읽힘
+- 관측 0개일 때: "첫 관측을 남겨보세요" 오버레이
+
+### 마커 크기 반응형
+```js
+// 관측이 적을수록 마커 크게, 많아질수록 작아짐
+const radius = Math.max(12, 28 - observationCount * 0.003)
+```
+
+### 영향권 원 반경
+```js
+// 관측이 희소할수록 반경 크게 (최대 50km)
+const influenceRadius = Math.max(10000, 50000 - observationCount * 400) // 단위: 미터
+```
+
+---
+
+## 완료 기준
+
+- [ ] 관측 0개: 산림 배경 레이어 + "첫 관측" 오버레이 표시
+- [ ] 관측 5개: 큰 영향권 원 5개가 지도를 채움
+- [ ] 관측 50개: 영향권 원이 겹치며 밀도감 생김
+- [ ] 관측 100개: 마일스톤 화면 → 히트맵 모드로 전환
+- [ ] git push → Vercel 배포 확인
+
+---
+
+## 작업 순서
+
+```
+Phase 1: Supabase 준비 (DB + Edge Function)
+Phase 2: 산림 배경 레이어
+Phase 3: 영향권 원 모드 (< 100개)
+Phase 4: 히트맵 모드 (≥ 100개)
+Phase 5: 100번째 마일스톤
+Phase 6: 빈 상태 처리
+```
+
+---
+
+## Phase 1 — Supabase 준비
+
+### 1-1. daily_maps 테이블 생성
+
+Supabase 대시보드 → SQL Editor에서 실행:
+
+```sql
+-- IDW 결과 캐싱 테이블
+create table daily_maps (
+  id uuid primary key default gen_random_uuid(),
+  date date not null default current_date,
+  mode text not null check (mode in ('circles', 'heatmap')),
+  observation_count integer not null,
+  grid_data jsonb,        -- 히트맵 모드: [{lat, lng, intensity}]
+  created_at timestamptz default now(),
+  unique(date)
+);
+
+alter table daily_maps enable row level security;
+create policy "전체 조회 가능" on daily_maps for select using (true);
+```
+
+### 1-2. observation_count 함수 생성
+
+```sql
+-- 전체 관측 수 빠르게 조회하는 함수
+create or replace function get_observation_count()
+returns integer as $$
+  select count(*)::integer from observations;
+$$ language sql security definer;
+```
+
+### 1-3. Edge Function 생성
+
+```
+supabase/functions/generate-heatmap/index.ts
+```
+
+```typescript
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+const GRID_RESOLUTION = 0.1 // 격자 간격 (도 단위, 약 10km)
+const KOREA_BOUNDS = {
+  minLat: 33.0, maxLat: 38.9,
+  minLng: 124.5, maxLng: 131.0,
+}
+
+// IDW 보간 함수
+function idw(points: {lat: number, lng: number, value: number}[], targetLat: number, targetLng: number, power = 2) {
+  if (points.length === 0) return null
+
+  let weightedSum = 0
+  let totalWeight = 0
+
+  for (const p of points) {
+    const dist = Math.sqrt((p.lat - targetLat) ** 2 + (p.lng - targetLng) ** 2)
+    if (dist < 0.001) return p.value // 관측점과 거의 동일 위치
+    const weight = 1 / Math.pow(dist, power)
+    weightedSum += weight * p.value
+    totalWeight += weight
+  }
+
+  return weightedSum / totalWeight
+}
+
+serve(async () => {
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  )
+
+  // 오늘 관측 데이터 조회
+  const today = new Date().toISOString().split('T')[0]
+  const { data: observations } = await supabase
+    .from('observations')
+    .select('lat, lng, risk_score')
+    .gte('observed_at', `${today}T00:00:00`)
+
+  const count = observations?.length ?? 0
+  const mode = count >= 100 ? 'heatmap' : 'circles'
+
+  let gridData = null
+
+  if (mode === 'heatmap' && observations && observations.length > 0) {
+    const points = observations.map(o => ({
+      lat: o.lat, lng: o.lng, value: o.risk_score
+    }))
+
+    gridData = []
+    for (let lat = KOREA_BOUNDS.minLat; lat <= KOREA_BOUNDS.maxLat; lat += GRID_RESOLUTION) {
+      for (let lng = KOREA_BOUNDS.minLng; lng <= KOREA_BOUNDS.maxLng; lng += GRID_RESOLUTION) {
+        const value = idw(points, lat, lng)
+        if (value !== null) {
+          gridData.push({ lat, lng, intensity: value })
+        }
+      }
+    }
+  }
+
+  // 저장 (upsert)
+  await supabase.from('daily_maps').upsert({
+    date: today,
+    mode,
+    observation_count: count,
+    grid_data: gridData,
+  }, { onConflict: 'date' })
+
+  return new Response(JSON.stringify({ mode, count }), {
+    headers: { 'Content-Type': 'application/json' }
+  })
+})
+```
+
+**배포**:
+```bash
+supabase functions deploy generate-heatmap
+```
+
+**수동 테스트** (Supabase 대시보드 → Functions → generate-heatmap → Invoke):
+- 응답에 `{ mode: "circles", count: N }` 확인
+
+### 1-4. Cron 설정 (매일 자정 KST = UTC 15:00)
+
+Supabase 대시보드 → Database → Extensions → `pg_cron` 활성화 후 SQL Editor:
+
+```sql
+select cron.schedule(
+  'generate-daily-heatmap',
+  '0 15 * * *',
+  $$
+  select net.http_post(
+    url := 'https://ydqmiwxwbilfgwpriosd.supabase.co/functions/v1/generate-heatmap',
+    headers := jsonb_build_object(
+      'Authorization', 'Bearer ' || current_setting('app.supabase_anon_key')
+    )
+  )
+  $$
+);
+```
+
+> 주의: `current_setting('app.supabase_anon_key')` 대신 실제 anon key를 문자열로 직접 입력해도 됨
+
+---
+
+## Phase 2 — 산림 배경 레이어
+
+전국 산림 GeoJSON을 지도 배경에 회색으로 깔아서 공백이 "미관측"으로 읽히게 함.
+
+### 2-1. 산림 GeoJSON 파일 배치
+
+```
+public/data/korea_forest.geojson
+```
+
+> 산림 경계 GeoJSON 출처: 국가공간정보포털 (www.nsdi.go.kr) → 산림청 산림기본도  
+> 파일 크기가 크면 `topojson`으로 압축 권장 (10MB → 1MB 수준)  
+> 임시 대안: 한반도 전체를 하나의 폴리곤으로 처리하고 나중에 교체
+
+### 2-2. KakaoMap.jsx에 산림 레이어 추가
+
+```jsx
+// 기존 KakaoMap.jsx에서 지도 초기화 후 추가
+
+const addForestLayer = async (map) => {
+  try {
+    const res = await fetch('/data/korea_forest.geojson')
+    const geojson = await res.json()
+
+    L.geoJSON(geojson, {
+      style: {
+        color: '#6b7280',       // 회색 테두리
+        weight: 0.5,
+        fillColor: '#9ca3af',   // 연한 회색
+        fillOpacity: 0.15,      // 매우 연하게
+      },
+      interactive: false,        // 클릭 이벤트 없음
+    }).addTo(map)
+  } catch (e) {
+    console.warn('산림 레이어 로드 실패:', e)
+    // 실패해도 앱은 정상 동작
+  }
+}
+```
+
+---
+
+## Phase 3 — 영향권 원 모드 (관측 < 100개)
+
+### 3-1. 영향권 원 컴포넌트 로직
+
+파일: `src/utils/circleMode.js`
+
+```js
+import { getRiskColor } from './riskCalculator'
+
+// 관측 수에 따른 영향권 반경 (미터)
+export const getInfluenceRadius = (totalCount) => {
+  return Math.max(10000, 50000 - totalCount * 400)
+  // 0개: 50km, 50개: 30km, 99개: 10.4km
+}
+
+// IDW 거리 가중치 → opacity 계산
+// 마커에서 멀수록 투명하게
+export const getInfluenceOpacity = (distanceRatio) => {
+  // distanceRatio: 0(중심) ~ 1(경계)
+  return 0.35 * (1 - distanceRatio ** 1.5)
+}
+
+// 관측 수에 따른 마커 반경 (픽셀)
+export const getMarkerRadius = (totalCount) => {
+  return Math.max(12, 28 - totalCount * 0.003)
+}
+```
+
+### 3-2. KakaoMap.jsx 수정
+
+기존 마커 렌더링 부분을 아래로 교체:
+
+```jsx
+// src/components/map/KakaoMap.jsx
+// 기존 import 유지, 아래 추가
+import { getInfluenceRadius, getInfluenceOpacity, getMarkerRadius } from '@/utils/circleMode'
+
+// renderObservations 함수 교체
+const renderObservations = (map, observations, totalCount) => {
+  // 기존 레이어 제거
+  if (layerGroupRef.current) {
+    layerGroupRef.current.clearLayers()
+  }
+
+  const mode = totalCount >= 100 ? 'heatmap' : 'circles'
+  const influenceRadius = getInfluenceRadius(totalCount)
+  const markerRadius = getMarkerRadius(totalCount)
+
+  if (mode === 'circles') {
+    observations.forEach(obs => {
+      const color = getRiskColor(obs.risk_score)
+      const latlng = [obs.lat, obs.lng]
+
+      // 영향권 원 (바깥쪽, 반투명)
+      L.circle(latlng, {
+        radius: influenceRadius,
+        color: 'transparent',
+        fillColor: color,
+        fillOpacity: 0.18,
+        interactive: false,
+      }).addTo(layerGroupRef.current)
+
+      // 중간 원 (그라데이션 느낌)
+      L.circle(latlng, {
+        radius: influenceRadius * 0.5,
+        color: 'transparent',
+        fillColor: color,
+        fillOpacity: 0.12,
+        interactive: false,
+      }).addTo(layerGroupRef.current)
+
+      // 마커 (중심)
+      L.circleMarker(latlng, {
+        radius: markerRadius,
+        color: '#fff',
+        weight: 2,
+        fillColor: color,
+        fillOpacity: 0.9,
+      })
+        .bindPopup(`
+          <b>위험도: ${obs.risk_score}/10</b><br/>
+          건조도: ${obs.dryness_level}단계<br/>
+          풍속: ${obs.wind_level}단계<br/>
+          ${new Date(obs.observed_at).toLocaleString('ko-KR')}
+        `)
+        .addTo(layerGroupRef.current)
+    })
+  }
+
+  // 히트맵 모드는 Phase 4에서 추가
+}
+```
+
+> 주의: `layerGroupRef`는 기존 코드에서 관리하는 ref — 이미 있으면 그대로 사용
+
+---
+
+## Phase 4 — 히트맵 모드 (관측 ≥ 100개)
+
+### 4-1. leaflet.heat 설치
+
+```bash
+npm install leaflet.heat
+```
+
+### 4-2. KakaoMap.jsx에 히트맵 렌더링 추가
+
+```jsx
+// 파일 상단에 추가
+import 'leaflet.heat'
+
+// renderObservations 함수 내 mode === 'heatmap' 분기 추가
+if (mode === 'heatmap') {
+  // daily_maps에서 grid_data 가져오기
+  const { data: mapData } = await supabase
+    .from('daily_maps')
+    .select('grid_data')
+    .eq('date', new Date().toISOString().split('T')[0])
+    .single()
+
+  if (mapData?.grid_data) {
+    // [{lat, lng, intensity}] → [[lat, lng, intensity]]
+    const heatPoints = mapData.grid_data.map(p => [p.lat, p.lng, p.intensity / 10])
+
+    L.heatLayer(heatPoints, {
+      radius: 30,
+      blur: 25,
+      maxZoom: 10,
+      gradient: {
+        0.3: '#4CAF50',
+        0.5: '#FFC107',
+        0.7: '#FF9800',
+        1.0: '#F44336',
+      },
+    }).addTo(layerGroupRef.current)
+  }
+
+  // 히트맵 위에 실제 관측 마커도 작게 표시
+  observations.forEach(obs => {
+    L.circleMarker([obs.lat, obs.lng], {
+      radius: 5,
+      color: '#fff',
+      weight: 1,
+      fillColor: getRiskColor(obs.risk_score),
+      fillOpacity: 0.8,
+    })
+      .bindPopup(`위험도: ${obs.risk_score}/10`)
+      .addTo(layerGroupRef.current)
+  })
+}
+```
+
+---
+
+## Phase 5 — 100번째 마일스톤
+
+### 5-1. canvas-confetti 설치
+
+```bash
+npm install canvas-confetti
+```
+
+### 5-2. MilestoneModal 컴포넌트 생성
+
+파일: `src/components/map/MilestoneModal.jsx`
+
+```jsx
+import { useEffect } from 'react'
+import confetti from 'canvas-confetti'
+
+export default function MilestoneModal({ count, onClose }) {
+  useEffect(() => {
+    // 폭죽 애니메이션
+    const duration = 3000
+    const end = Date.now() + duration
+
+    const frame = () => {
+      confetti({
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: ['#2d6a4f', '#52b788', '#f4a261'],
+      })
+      confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: ['#2d6a4f', '#52b788', '#f4a261'],
+      })
+
+      if (Date.now() < end) requestAnimationFrame(frame)
+    }
+    frame()
+  }, [])
+
+  const isMilestone = count !== null
+  const label = {
+    100: { title: '🎉 전국 100번째 관측!', desc: '당신의 관측으로 바스락 지도가 처음으로 히트맵 모드로 전환됩니다.', bonus: 50 },
+    500: { title: '🔥 전국 500번째 관측!', desc: '전국 산림의 절반 이상을 커버하기 시작했습니다.', bonus: 100 },
+    1000: { title: '🌲 전국 1000번째 관측!', desc: '마을 단위 위험 감지가 시작됩니다.', bonus: 200 },
+  }[count] ?? { title: `🌟 ${count}번째 관측!`, desc: '대단한 기여입니다!', bonus: 30 }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+      <div className="bg-white rounded-2xl mx-6 p-6 text-center shadow-2xl">
+        <p className="text-3xl font-bold mb-2">{label.title}</p>
+        <p className="text-gray-600 text-sm mb-4">{label.desc}</p>
+
+        {/* 지도 모드 전환 시각 */}
+        {count === 100 && (
+          <div className="flex items-center justify-center gap-3 my-4">
+            <div className="text-xs text-center">
+              <div className="w-16 h-16 rounded-full bg-orange-200 flex items-center justify-center mb-1">
+                <span className="text-2xl">●</span>
+              </div>
+              <span className="text-gray-500">영향권 원</span>
+            </div>
+            <span className="text-gray-400 text-xl">→</span>
+            <div className="text-xs text-center">
+              <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-green-200 via-yellow-200 to-red-300 flex items-center justify-center mb-1">
+                <span className="text-lg">🔥</span>
+              </div>
+              <span className="text-gray-500">히트맵</span>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-green-50 rounded-xl p-3 mb-4">
+          <p className="text-green-700 font-bold text-lg">+{label.bonus} 포인트 지급!</p>
+        </div>
+
+        <button
+          onClick={onClose}
+          className="w-full bg-green-700 text-white rounded-xl py-3 font-bold"
+        >
+          지도 확인하기
+        </button>
+      </div>
+    </div>
+  )
+}
+```
+
+### 5-3. useObservation.js 수정
+
+관측 제출 후 마일스톤 체크 로직 추가:
+
+```js
+// hooks/useObservation.js
+// submit 함수 내 insert 성공 후 추가
+
+const MILESTONES = [100, 500, 1000, 5000, 10000]
+
+// 전체 관측 수 조회
+const { data: countData } = await supabase.rpc('get_observation_count')
+const totalCount = countData ?? 0
+
+// 마일스톤 체크
+const hitMilestone = MILESTONES.find(m => totalCount === m)
+if (hitMilestone) {
+  // 중복 표시 방지
+  const shownKey = `milestone_${hitMilestone}_shown`
+  if (!localStorage.getItem(shownKey)) {
+    localStorage.setItem(shownKey, 'true')
+
+    // 보너스 포인트 지급
+    await supabase.from('point_logs').insert({
+      user_id: user.id,
+      points: hitMilestone === 100 ? 50 : hitMilestone === 500 ? 100 : 200,
+      reason: `milestone_${hitMilestone}`,
+    })
+
+    return { success: true, milestone: hitMilestone, totalCount }
+  }
+}
+
+return { success: true, milestone: null, totalCount }
+```
+
+### 5-4. Observe.jsx에 MilestoneModal 연결
+
+```jsx
+// pages/Observe.jsx
+import MilestoneModal from '@/components/map/MilestoneModal'
+
+// submit 후
+const result = await submit(formData)
+if (result.milestone) {
+  setMilestoneCount(result.milestone)  // useState로 관리
+}
+
+// JSX에 추가
+{milestoneCount && (
+  <MilestoneModal
+    count={milestoneCount}
+    onClose={() => {
+      setMilestoneCount(null)
+      navigate('/')  // 지도로 이동
+    }}
+  />
+)}
+```
+
+---
+
+## Phase 6 — 빈 상태 처리
+
+### 관측 0개일 때 오버레이
+
+파일: `src/components/map/EmptyMapOverlay.jsx`
+
+```jsx
+export default function EmptyMapOverlay({ onObserve }) {
+  return (
+    <div className="absolute inset-0 z-10 flex items-end justify-center pb-24 pointer-events-none">
+      <div className="bg-white/90 rounded-2xl px-5 py-4 mx-6 text-center shadow-lg pointer-events-auto">
+        <p className="text-2xl mb-1">🍂</p>
+        <p className="font-bold text-gray-800 mb-1">아직 관측이 없어요</p>
+        <p className="text-sm text-gray-500 mb-3">첫 번째 관측을 남겨보세요</p>
+        <button
+          onClick={onObserve}
+          className="bg-green-700 text-white text-sm rounded-xl px-5 py-2 font-bold"
+        >
+          지금 관측하기
+        </button>
+      </div>
+    </div>
+  )
+}
+```
+
+Home.jsx에서 관측 0개일 때 표시:
+
+```jsx
+{observations.length === 0 && (
+  <EmptyMapOverlay onObserve={() => navigate('/observe')} />
+)}
+```
+
+---
+
+## 주의사항
+
+- `KakaoMap.jsx`는 이름만 Kakao이고 실제로는 Leaflet + VWorld 사용 중 — 혼동 주의
+- `leaflet.heat` import는 사이드이펙트로 `L`에 등록됨 → `import 'leaflet.heat'` 한 줄로 충분
+- IDW는 관측점 주변에 별 모양 인공물이 생길 수 있음 → 관측 100건 이상 쌓이면 Kriging 교체 포인트는 `generate-heatmap/index.ts`의 `idw()` 함수
+- 마일스톤 `localStorage` 플래그는 기기 단위 — 다른 기기에서 같은 계정으로 로그인하면 재표시됨 (허용 범위)
+- Edge Function 첫 호출은 cold start로 5~10초 걸릴 수 있음
+
+---
+
+## 파일 변경 목록
+
+```
+신규 생성:
+  supabase/functions/generate-heatmap/index.ts
+  src/utils/circleMode.js
+  src/components/map/MilestoneModal.jsx
+  src/components/map/EmptyMapOverlay.jsx
+  public/data/korea_forest.geojson  ← 별도 다운로드 필요
+
+수정:
+  src/components/map/KakaoMap.jsx   ← 영향권 원 + 히트맵 렌더링
+  src/hooks/useObservation.js       ← 마일스톤 체크
+  src/pages/Home.jsx                ← EmptyMapOverlay 연결
+  src/pages/Observe.jsx             ← MilestoneModal 연결
+```
+
+---
+
+## 세션 시작 체크리스트
+
+- [ ] BASEURAK_PROJECT.md 전체 내용 컨텍스트에 포함
+- [ ] 2026-03-26.md 핸드오프 내용 확인
+- [ ] `git pull` 최신 코드 동기화
+- [ ] Supabase SQL Editor 접근 가능 상태 확인
