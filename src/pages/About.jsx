@@ -55,7 +55,7 @@ export default function About() {
   }, [])
 
   return (
-    <PageLayout className="gap-4 py-4 overflow-y-auto">
+    <PageLayout className="gap-4 py-4">
       {/* 공지사항 */}
       {notices.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">

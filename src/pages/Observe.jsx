@@ -61,7 +61,7 @@ export default function Observe() {
   }
 
   return (
-    <PageLayout className="gap-4 py-4 pb-6 overflow-y-auto">
+    <PageLayout className="gap-4 py-4 pb-6">
       <LocationStatus status={locationStatus} coords={coords} />
       <div className="bg-white rounded-2xl p-4 shadow-sm">
         <DrynessSelector value={dryness} onChange={setDryness} />

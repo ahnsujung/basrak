@@ -37,7 +37,7 @@ export default function Profile() {
   }
 
   return (
-    <PageLayout title="마이페이지" sub className="gap-4 py-4 overflow-y-auto">
+    <PageLayout title="마이페이지" sub className="gap-4 py-4">
       {/* 프로필 헤더 */}
       <div className="bg-white rounded-2xl p-5 shadow-sm flex items-center gap-4">
         <div className="w-14 h-14 rounded-full flex items-center justify-center text-3xl" style={{ backgroundColor: level.bg.replace('bg-', '') }}>

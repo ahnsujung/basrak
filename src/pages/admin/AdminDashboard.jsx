@@ -135,7 +135,7 @@ export default function AdminDashboard() {
   const maxRegionCount = regionData[0]?.count || 1
 
   return (
-    <PageLayout title="관리자 대시보드" sub className="gap-4 py-4 overflow-y-auto">
+    <PageLayout title="관리자 대시보드" sub className="gap-4 py-4">
       {/* 요약 통계 */}
       <div className="grid grid-cols-2 gap-3">
         {summaryCards.map(({ label, value, color }) => (

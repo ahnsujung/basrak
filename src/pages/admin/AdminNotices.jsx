@@ -73,7 +73,7 @@ export default function AdminNotices() {
   }
 
   return (
-    <PageLayout title="공지 관리" sub className="gap-4 py-4 overflow-y-auto">
+    <PageLayout title="공지 관리" sub className="gap-4 py-4">
       {/* 작성/수정 폼 */}
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
         {editId && (

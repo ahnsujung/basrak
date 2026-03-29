@@ -15,11 +15,11 @@ export default function TopBar({ title, right, sub = false }) {
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
-    const main = document.querySelector('main')
-    if (!main) return
-    const handler = () => setScrolled(main.scrollTop > 40)
-    main.addEventListener('scroll', handler, { passive: true })
-    return () => main.removeEventListener('scroll', handler)
+    const el = document.getElementById('app-scroll')
+    if (!el) return
+    const handler = () => setScrolled(el.scrollTop > 40)
+    el.addEventListener('scroll', handler, { passive: true })
+    return () => el.removeEventListener('scroll', handler)
   }, [])
 
   // 하위 페이지: 흰색 헤더 + 중앙 타이틀 + 뒤로가기
