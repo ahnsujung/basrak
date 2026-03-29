@@ -186,9 +186,12 @@ export default function ObservationLayer({ map, observations, totalCount, onSele
 
           clusterGroupRef.current.eachLayer(() => {}) // force cluster calculation
           const visibleClusters = []
+          const singleMarkers = []
           clusterGroupRef.current._featureGroup.eachLayer((layer) => {
             if (layer._childCount) visibleClusters.push(layer)
+            else if (layer.getLatLng) singleMarkers.push(layer)
           })
+          console.log(`줌${map.getZoom()}: 클러스터 ${visibleClusters.length}개, 단독 ${singleMarkers.length}개`)
 
           visibleClusters.forEach((cluster) => {
             const children = cluster.getAllChildMarkers()
@@ -233,7 +236,7 @@ export default function ObservationLayer({ map, observations, totalCount, onSele
 
             // 건수 기준 중심 도트
             const count = children.length
-            const dotSize = Math.max(8, Math.min(22, 6 + count * 0.6))
+            const dotSize = count <= 3 ? 6 : count <= 10 ? 12 : count <= 20 ? 18 : 26
             const dotIcon = L.divIcon({
               className: '',
               html: `<div style="
@@ -269,10 +272,82 @@ export default function ObservationLayer({ map, observations, totalCount, onSele
             L.marker([center.lat, center.lng], { icon: pulseIcon, interactive: false })
               .addTo(layerGroupRef.current)
           })
+
+          // 단독 마커에도 영향권 원 + 도트 + 펄스
+          singleMarkers.forEach((marker) => {
+            const obs = marker.options?.obsData ?? marker.options?._origData
+            if (!obs) {
+              // fallback: 위치에서 가장 가까운 관측 찾기
+              const ll = marker.getLatLng()
+              const nearest = observations.find(o =>
+                Math.abs(o.lat - ll.lat) < 0.001 && Math.abs(o.lng - ll.lng) < 0.001
+              )
+              if (!nearest) return
+              var obsData = nearest
+            } else {
+              var obsData = obs
+            }
+            const color = getRiskColor(obsData.risk_score)
+            const latlng = [obsData.lat, obsData.lng]
+            const singleRadius = 10000
+
+            L.circle(latlng, {
+              radius: singleRadius,
+              color: color,
+              weight: 0.8,
+              opacity: 0.2,
+              fillColor: color,
+              fillOpacity: 0.06,
+              interactive: false,
+            }).addTo(layerGroupRef.current)
+
+            L.circle(latlng, {
+              radius: singleRadius * 0.45,
+              color: color,
+              weight: 0.5,
+              opacity: 0.15,
+              fillColor: color,
+              fillOpacity: 0.08,
+              interactive: false,
+            }).addTo(layerGroupRef.current)
+
+            const sDot = 8
+            const sDotIcon = L.divIcon({
+              className: '',
+              html: `<div style="
+                width:${sDot}px; height:${sDot}px;
+                border-radius:50%;
+                background:${color};
+                box-shadow:0 0 6px 2px ${color};
+              "></div>`,
+              iconSize: [sDot, sDot],
+              iconAnchor: [sDot / 2, sDot / 2],
+            })
+            L.marker(latlng, { icon: sDotIcon })
+              .on('click', () => onSelect?.(obsData))
+              .addTo(layerGroupRef.current)
+
+            const sPulse = sDot * 1.5
+            const sPulseIcon = L.divIcon({
+              className: '',
+              html: `<div style="
+                width:${sPulse}px; height:${sPulse}px;
+                border-radius:50%;
+                background:${color};
+                opacity:0.3;
+                animation:cluster-pulse 2s ease-out infinite;
+              "></div>`,
+              iconSize: [sPulse, sPulse],
+              iconAnchor: [sPulse / 2, sPulse / 2],
+            })
+            L.marker(latlng, { icon: sPulseIcon, interactive: false })
+              .addTo(layerGroupRef.current)
+          })
         }
 
         // 클러스터 형성 후 원 그리기
-        setTimeout(addClusterCircles, 100)
+        clusterGroupRef.current.on('animationend', addClusterCircles)
+        setTimeout(addClusterCircles, 300)
       }
     }
 
@@ -281,6 +356,7 @@ export default function ObservationLayer({ map, observations, totalCount, onSele
 
     return () => {
       map.off('zoomend', render)
+      clusterGroupRef.current?.off('animationend')
     }
   }, [map, observations, totalCount]) // eslint-disable-line react-hooks/exhaustive-deps
 

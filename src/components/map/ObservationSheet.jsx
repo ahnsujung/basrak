@@ -21,38 +21,38 @@ function formatTime(dateStr) {
 }
 
 function SingleCard({ obs, onPhotoClick }) {
-  const { dryness_level, wind_level, risk_score, photo_url, observed_at } = obs
-  const color = getRiskColor(risk_score)
+  const { dryness_level, wind_level, photo_url, observed_at } = obs
 
   return (
     <div>
       <div className="flex items-center gap-3 mb-3">
-        <div
-          className="w-9 h-9 rounded-full flex-shrink-0 border-2 border-white shadow"
-          style={{ backgroundColor: color }}
-        />
+        <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center flex-shrink-0">
+          <span className="text-brand text-xs font-bold">1</span>
+        </div>
         <div>
-          <div className="flex items-center gap-2">
-            <Badge variant={RISK_VARIANT(risk_score)}>{getRiskLabel(risk_score)}</Badge>
-            <span className="text-sm font-semibold text-gray-700">위험도 {risk_score}점</span>
-          </div>
+          <p className="text-sm font-bold text-gray-800">관측 정보</p>
           <p className="text-xs text-gray-400 mt-0.5">{formatTime(observed_at)}</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        <div className="bg-gray-50 rounded-xl px-3 py-2">
-          <p className="text-xs text-gray-400 mb-0.5">낙엽 건조도</p>
-          <p className="text-sm font-semibold text-gray-800">
-            단계 {dryness_level} · {DRYNESS_LABEL[dryness_level]}
-          </p>
-        </div>
-        <div className="bg-gray-50 rounded-xl px-3 py-2">
-          <p className="text-xs text-gray-400 mb-0.5">체감 풍속</p>
-          <p className="text-sm font-semibold text-gray-800">
-            단계 {wind_level} · {WIND_LABEL[wind_level]}
-          </p>
-        </div>
+      {/* 건조도 */}
+      <div className="bg-gray-50 rounded-2xl px-4 py-3.5 mb-2">
+        <p className="text-xs font-bold text-gray-700">건조도</p>
+        <MedianBar
+          labels={['촉촉함', '구겨짐', '쪼개짐', '바스라짐']}
+          value={dryness_level}
+          gradient="linear-gradient(to right, #E8D5B7, #C4A26E, #9B7740, #6B4E2A)"
+        />
+      </div>
+
+      {/* 풍속 */}
+      <div className="bg-gray-50 rounded-2xl px-4 py-3.5">
+        <p className="text-xs font-bold text-gray-700">풍속</p>
+        <MedianBar
+          labels={['없음', '산들', '약함', '보통', '강함', '매우강']}
+          value={wind_level}
+          gradient="linear-gradient(to right, #B8D4E8, #7EB3D4, #4A90BD, #2968A0, #1A4E82, #0D3566)"
+        />
       </div>
 
       {photo_url && (
