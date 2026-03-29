@@ -12,6 +12,12 @@ import About from '@/pages/About'
 import AdminDashboard from '@/pages/admin/AdminDashboard'
 import AdminUsers from '@/pages/admin/AdminUsers'
 import AdminNotices from '@/pages/admin/AdminNotices'
+import WebLayout from '@/components/web/WebLayout'
+import WebDashboard from '@/pages/web/WebDashboard'
+import WebObservations from '@/pages/web/WebObservations'
+import WebUsers from '@/pages/web/WebUsers'
+import WebNotices from '@/pages/web/WebNotices'
+import WebIndex from '@/pages/web/WebIndex'
 
 export default function App() {
   return (
@@ -28,6 +34,13 @@ export default function App() {
           <Route path="/admin/users" element={<RequireAdmin><AdminUsers /></RequireAdmin>} />
           <Route path="/admin/notices" element={<RequireAdmin><AdminNotices /></RequireAdmin>} />
           <Route path="/dev/map-test" element={<MapTest />} />
+          <Route path="/web" element={<RequireAdmin><WebLayout /></RequireAdmin>}>
+            <Route index element={<WebDashboard />} />
+            <Route path="observations" element={<WebObservations />} />
+            <Route path="users" element={<WebUsers />} />
+            <Route path="notices" element={<WebNotices />} />
+            <Route path="index" element={<WebIndex />} />
+          </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </ErrorBoundary>

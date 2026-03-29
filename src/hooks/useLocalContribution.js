@@ -40,6 +40,7 @@ export function useLocalContribution(lat, lng, userId) {
     const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
     Promise.all([
+      // 주변 10km 관측
       supabase
         .from('observations')
         .select('user_id')
@@ -48,6 +49,7 @@ export function useLocalContribution(lat, lng, userId) {
         .gte('lng', lng - delta)
         .lte('lng', lng + delta)
         .gte('observed_at', since),
+      // 시도별 관측 수
       ...PROVINCES.map(p =>
         supabase
           .from('observations')
@@ -57,7 +59,9 @@ export function useLocalContribution(lat, lng, userId) {
           .gte('lng', p.lngMin)
           .lte('lng', p.lngMax)
       ),
-    ]).then(([localResult, ...provinceCounts]) => {
+      // 전국 유저별 관측 수 (상위 10명)
+      supabase.rpc('get_top_observers', { limit_count: 10 }).then(res => res, () => ({ data: null })),
+    ]).then(([localResult, ...rest]) => {
       if (!mounted) return
 
       if (localResult.error) {
@@ -65,26 +69,39 @@ export function useLocalContribution(lat, lng, userId) {
         return
       }
 
+      const nationalResult = rest.pop()
+      const provinceCounts = rest
+
       const obs = localResult.data ?? []
       const uniqueUsers = new Set(obs.map(o => o.user_id)).size
       const totalObs = obs.length
       const myObs = userId ? obs.filter(o => o.user_id === userId).length : 0
       const myRatio = totalObs > 0 ? Math.round((myObs / totalObs) * 100) : 0
 
+      // 시도 순위
       const ranked = PROVINCES.map((p, i) => ({
         name: p.name,
         count: provinceCounts[i].count ?? 0,
       })).sort((a, b) => b.count - a.count)
 
-      const rank = myProvince
+      const provinceRank = myProvince
         ? ranked.findIndex(p => p.name === myProvince.name) + 1
         : null
+
+      // 전국 개인 순위
+      let nationalRank = null
+      const topList = nationalResult?.data
+      if (topList && userId) {
+        const idx = topList.findIndex(r => r.user_id === userId)
+        if (idx >= 0) nationalRank = idx + 1
+      }
 
       setData({
         uniqueUsers,
         myRatio,
         provinceName: myProvince ? `${myProvince.name}지역` : null,
-        provinceRank: rank,
+        provinceRank,
+        nationalRank,
       })
     }).catch(() => {
       if (!mounted) return

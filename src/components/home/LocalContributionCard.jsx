@@ -1,14 +1,24 @@
 const MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' }
 
-function rankLabel(name, rank) {
-  const medal = MEDAL[rank] ? `${MEDAL[rank]} ` : ''
-  const excl = rank <= 3 ? '!' : ''
-  if (rank <= 10) return `${medal}${name} 전국 ${rank}등${excl}`
-  return `${name} ${rank}등`
+function getRankDisplay(data) {
+  const { nationalRank, provinceName, provinceRank } = data
+  // 전국 10위 이내
+  if (nationalRank && nationalRank <= 10) {
+    const medal = MEDAL[nationalRank] || ''
+    return { text: `${medal} 전국 ${nationalRank}등`, color: 'text-red-600' }
+  }
+  // 지역 10위 이내
+  if (provinceName && provinceRank && provinceRank <= 10) {
+    const medal = MEDAL[provinceRank] || ''
+    return { text: `${medal} ${provinceName} ${provinceRank}등`, color: 'text-orange-600' }
+  }
+  return null
 }
 
 export default function LocalContributionCard({ data }) {
   if (!data) return null
+
+  const rank = getRankDisplay(data)
 
   return (
     <div className="absolute top-3 left-4 right-4 z-[1000] bg-white/95 backdrop-blur-sm rounded-xl px-4 py-2.5 border border-gray-100">
@@ -23,9 +33,9 @@ export default function LocalContributionCard({ data }) {
             </span>
           )}
         </div>
-        {data.provinceName && data.provinceRank && (
-          <span className="text-xs font-semibold text-orange-600 shrink-0">
-            {rankLabel(data.provinceName, data.provinceRank)}
+        {rank && (
+          <span className={`text-xs font-semibold ${rank.color} shrink-0`}>
+            {rank.text}
           </span>
         )}
       </div>
