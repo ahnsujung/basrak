@@ -27,9 +27,16 @@ export function WebPagination({ page, totalPages, total, pageSize, onPageChange 
   )
 }
 
-export function WebTable({ columns, rows, loading, sort, onSort, emptyText = '데이터가 없습니다' }) {
+export function WebTable({ columns, rows, loading, sort, onSort, page = 0, total = 0, pageSize = 20, onPageChange, emptyText = '데이터가 없습니다', onRowClick }) {
+  const totalPages = Math.ceil(total / pageSize)
+
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      {onPageChange && totalPages > 1 && (
+        <div className="flex justify-end px-4 py-2 border-b border-gray-100">
+          <WebPagination page={page} totalPages={totalPages} total={total} pageSize={pageSize} onPageChange={onPageChange} />
+        </div>
+      )}
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
@@ -52,10 +59,10 @@ export function WebTable({ columns, rows, loading, sort, onSort, emptyText = '�
             ) : rows.length === 0 ? (
               <tr><td colSpan={columns.length} className="text-center py-12 text-gray-400">{emptyText}</td></tr>
             ) : rows.map((row, i) => (
-              <tr key={row.id ?? i} className="hover:bg-gray-50 transition-colors">
+              <tr key={row.id ?? i} className={`hover:bg-gray-50 transition-colors ${onRowClick ? 'cursor-pointer' : ''}`} onClick={() => onRowClick?.(row)}>
                 {columns.map((col) => (
                   <td key={col.key} className={`px-4 py-3 ${col.tdClass || ''}`}>
-                    {col.render ? col.render(row) : row[col.key] ?? '-'}
+                    {col.render ? col.render(row, { index: i, total, offset: page * pageSize + i }) : row[col.key] ?? '-'}
                   </td>
                 ))}
               </tr>
