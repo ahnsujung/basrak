@@ -22,7 +22,6 @@ const PROVINCES = [
 ]
 
 function getProvince(lat, lng) {
-  // 광역시는 앞쪽에 배치해 중첩 시 우선 매칭
   return PROVINCES.find(
     p => lat >= p.latMin && lat <= p.latMax && lng >= p.lngMin && lng <= p.lngMax
   )
@@ -30,17 +29,17 @@ function getProvince(lat, lng) {
 
 export function useLocalContribution(lat, lng, userId) {
   const [data, setData] = useState(null)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     if (!lat || !lng) return
+    let mounted = true
 
     const myProvince = getProvince(lat, lng)
     const delta = 10 / 111
     const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
-    // 내 주변 10km + 전국 시도별 누적 관측 수 병렬 조회
     Promise.all([
-      // 내 주변 10km (로그인 시에만 기여율 계산)
       supabase
         .from('observations')
         .select('user_id')
@@ -49,7 +48,6 @@ export function useLocalContribution(lat, lng, userId) {
         .gte('lng', lng - delta)
         .lte('lng', lng + delta)
         .gte('observed_at', since),
-      // 시도별 누적 관측 수 (전체 기간)
       ...PROVINCES.map(p =>
         supabase
           .from('observations')
@@ -60,14 +58,19 @@ export function useLocalContribution(lat, lng, userId) {
           .lte('lng', p.lngMax)
       ),
     ]).then(([localResult, ...provinceCounts]) => {
-      // 주변 기여율
+      if (!mounted) return
+
+      if (localResult.error) {
+        setError('지역 데이터를 불러오지 못했습니다')
+        return
+      }
+
       const obs = localResult.data ?? []
       const uniqueUsers = new Set(obs.map(o => o.user_id)).size
       const totalObs = obs.length
       const myObs = userId ? obs.filter(o => o.user_id === userId).length : 0
       const myRatio = totalObs > 0 ? Math.round((myObs / totalObs) * 100) : 0
 
-      // 시도별 순위
       const ranked = PROVINCES.map((p, i) => ({
         name: p.name,
         count: provinceCounts[i].count ?? 0,
@@ -83,8 +86,13 @@ export function useLocalContribution(lat, lng, userId) {
         provinceName: myProvince ? `${myProvince.name}지역` : null,
         provinceRank: rank,
       })
+    }).catch(() => {
+      if (!mounted) return
+      setError('네트워크 오류가 발생했습니다')
     })
+
+    return () => { mounted = false }
   }, [lat, lng, userId])
 
-  return data
+  return { data, error }
 }

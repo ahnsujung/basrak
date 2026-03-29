@@ -12,15 +12,14 @@ export default function Modal({ open, onClose, children }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center"
+      className="fixed inset-0 z-40 flex items-center justify-center px-6"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-black/40" />
+      <div className="absolute inset-0 bg-black/20" />
       <div
-        className="relative w-full max-w-[430px] bg-white rounded-t-3xl px-5 pb-8 pt-5 shadow-xl animate-slide-up"
+        className="relative z-50 w-full max-w-[380px] bg-white rounded-2xl px-5 pb-6 pt-5 shadow-xl animate-slide-up max-h-[80vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
         {children}
       </div>
     </div>

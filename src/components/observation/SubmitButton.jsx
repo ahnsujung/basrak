@@ -4,7 +4,7 @@ export default function SubmitButton({ dryness, wind, location, loading, onSubmi
   const ready = dryness && wind && location === 'ready'
 
   return (
-    <section className="px-4 pb-4">
+    <section className="pb-4">
       {!ready && (
         <p className="text-xs text-gray-400 text-center mb-2">
           {!location || location !== 'ready'

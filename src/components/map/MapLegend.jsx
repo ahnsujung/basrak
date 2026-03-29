@@ -9,23 +9,22 @@ const ITEMS = [
 
 export default function MapLegend({ count }) {
   return (
-    <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg px-3 py-2.5 z-[1000]">
-      <p className="text-xs font-semibold text-gray-500 mb-1.5">산불 위험도</p>
-      <div className="flex flex-col gap-1.5">
+    <div className="absolute bottom-32 right-6 z-[1000] bg-white/80 backdrop-blur-sm rounded-xl px-2.5 py-2 shadow-sm border border-gray-100/60">
+      <div className="grid grid-cols-2 gap-x-2 gap-y-1">
         {ITEMS.map(({ score, label }) => (
-          <div key={score} className="flex items-center gap-2">
+          <div key={score} className="flex items-center gap-1.5">
             <span
-              className="w-3 h-3 rounded-full flex-shrink-0 border border-white shadow-sm"
+              className="w-2.5 h-2.5 rounded-full"
               style={{ backgroundColor: getRiskColor(score) }}
             />
-            <span className="text-xs text-gray-600">{label}</span>
+            <span className="text-xs text-gray-500">{label}</span>
           </div>
         ))}
       </div>
       {count != null && (
-        <p className="text-[10px] text-gray-400 mt-2 border-t border-gray-100 pt-1.5">
-          최근 24시간 {count}건
-        </p>
+        <span className="text-[11px] text-gray-400 border-t border-gray-200 pt-1 mt-1 block">
+          24h · {count}건
+        </span>
       )}
     </div>
   )

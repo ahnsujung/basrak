@@ -1,17 +1,41 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet.heat'
 import { supabase } from '@/lib/supabase'
 import { renderCircleMode } from '@/utils/circleMode'
 import { getRiskColor } from '@/utils/riskCalculator'
+import { risk } from '@/constants/theme'
+
+function useHeatmapGrid() {
+  const [gridData, setGridData] = useState(null)
+
+  useEffect(() => {
+    let mounted = true
+    const today = new Date().toISOString().split('T')[0]
+
+    supabase
+      .from('daily_maps')
+      .select('grid_data')
+      .eq('date', today)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (mounted && data?.grid_data) setGridData(data.grid_data)
+      })
+      .catch(() => {})
+
+    return () => { mounted = false }
+  }, [])
+
+  return gridData
+}
 
 export default function ObservationLayer({ map, observations, totalCount, onSelect }) {
   const layerGroupRef = useRef(null)
+  const gridData = useHeatmapGrid()
 
   useEffect(() => {
     if (!map) return
 
-    // layerGroup 초기화 (최초 1회)
     if (!layerGroupRef.current) {
       layerGroupRef.current = L.layerGroup().addTo(map)
     }
@@ -30,54 +54,40 @@ export default function ObservationLayer({ map, observations, totalCount, onSele
     const mode = totalCount >= 100 ? 'heatmap' : 'circles'
 
     if (mode === 'circles') {
-      renderCircleMode(layerGroupRef.current, observations, totalCount)
-
-      // 마커 클릭 → 상세 선택 콜백
-      layerGroupRef.current.eachLayer((layer) => {
-        if (layer._popup) {
-          layer.on('click', () => {
-            const obs = observations.find(
-              (o) => layer.getLatLng && layer.getLatLng().lat === o.lat && layer.getLatLng().lng === o.lng,
-            )
-            if (obs) onSelect?.(obs)
-          })
-        }
+      renderCircleMode(layerGroupRef.current, observations, totalCount, (clicked) => {
+        // 줌 레벨에 따라 근접 범위 동적 조정
+        const zoom = map.getZoom()
+        const threshold = 0.5 / Math.pow(2, zoom - 7) // 줌7: 0.5도(~50km), 줌10: 0.06도(~6km), 줌13: 0.008도(~800m)
+        const nearby = observations.filter(o =>
+          Math.abs(o.lat - clicked.lat) < threshold && Math.abs(o.lng - clicked.lng) < threshold
+        )
+        onSelect?.(nearby.length > 1 ? nearby : clicked)
       })
     } else {
-      renderHeatmap(layerGroupRef.current, observations)
+      renderHeatmap(layerGroupRef.current, observations, gridData)
     }
-  }, [map, observations, totalCount]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [map, observations, totalCount, gridData]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return null
 }
 
-async function renderHeatmap(layerGroup, observations) {
-  // daily_maps에서 grid_data 가져오기
-  const today = new Date().toISOString().split('T')[0]
-  const { data: mapData } = await supabase
-    .from('daily_maps')
-    .select('grid_data')
-    .eq('date', today)
-    .single()
-
-  if (mapData?.grid_data) {
-    // [{lat, lng, intensity}] → [[lat, lng, intensity]]
-    const heatPoints = mapData.grid_data.map((p) => [p.lat, p.lng, p.intensity / 10])
+function renderHeatmap(layerGroup, observations, gridData) {
+  if (gridData) {
+    const heatPoints = gridData.map((p) => [p.lat, p.lng, p.intensity / 10])
 
     L.heatLayer(heatPoints, {
       radius: 30,
       blur: 25,
       maxZoom: 10,
       gradient: {
-        0.3: '#4CAF50',
-        0.5: '#FFC107',
-        0.7: '#FF9800',
-        1.0: '#F44336',
+        0.3: risk.low,
+        0.5: risk.moderate,
+        0.7: risk.high,
+        1.0: risk.critical,
       },
     }).addTo(layerGroup)
   }
 
-  // 히트맵 위에 실제 관측 마커도 작게 표시
   observations.forEach((obs) => {
     L.circleMarker([obs.lat, obs.lng], {
       radius: 5,

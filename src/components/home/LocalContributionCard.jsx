@@ -11,15 +11,15 @@ export default function LocalContributionCard({ data }) {
   if (!data) return null
 
   return (
-    <div className="absolute top-3 left-4 right-4 z-[1000] bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2.5 shadow-sm border border-gray-100">
+    <div className="absolute top-3 left-4 right-4 z-[1000] bg-white/95 backdrop-blur-sm rounded-xl px-4 py-2.5 border border-gray-100">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <span className="text-sm text-gray-600 shrink-0">
-            관찰자 <strong className="text-green-700">{data.uniqueUsers}명</strong>
+            관찰자 <strong className="text-brand">{data.uniqueUsers}명</strong>
           </span>
           {data.uniqueUsers > 0 && (
             <span className="text-sm text-gray-600 shrink-0">
-              내 기여 <strong className="text-green-700">{data.myRatio}%</strong>
+              내 기여 <strong className="text-brand">{data.myRatio}%</strong>
             </span>
           )}
         </div>
@@ -29,7 +29,7 @@ export default function LocalContributionCard({ data }) {
           </span>
         )}
       </div>
-      <p className="text-[10px] text-gray-400 mt-0.5">주변 10km · 최근 7일 · 누적 관측 기준</p>
+      <p className="typo-caption-tiny mt-0.5">주변 10km · 최근 7일 · 누적 관측 기준</p>
     </div>
   )
 }

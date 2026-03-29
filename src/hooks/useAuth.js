@@ -18,13 +18,28 @@ export function useAuth() {
     return () => subscription.unsubscribe()
   }, [])
 
-  const signUp = async (email, password) => {
-    const { error } = await supabase.auth.signUp({ email, password })
+  const signUp = async (email, password, nickname) => {
+    const { data, error } = await supabase.auth.signUp({ email, password })
     if (error) throw error
+    // 트리거가 profiles 행을 생성한 뒤 닉네임 저장
+    if (data.user && nickname) {
+      await supabase.from('profiles').update({ nickname }).eq('id', data.user.id)
+    }
   }
 
   const signIn = async (email, password) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) throw error
+  }
+
+  const signInWithKakao = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'kakao',
+      options: {
+        redirectTo: window.location.origin,
+        scopes: 'profile_nickname profile_image',
+      },
+    })
     if (error) throw error
   }
 
@@ -33,5 +48,5 @@ export function useAuth() {
     if (error) throw error
   }
 
-  return { user, signUp, signIn, signOut }
+  return { user, signUp, signIn, signInWithKakao, signOut }
 }

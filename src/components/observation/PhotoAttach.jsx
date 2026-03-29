@@ -1,11 +1,31 @@
 import { useRef } from 'react'
+import { Camera } from 'lucide-react'
+
+function compressImage(file, maxWidth = 1280, quality = 0.7) {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      const ratio = Math.min(1, maxWidth / Math.max(img.width, img.height))
+      const w = Math.round(img.width * ratio)
+      const h = Math.round(img.height * ratio)
+      const canvas = document.createElement('canvas')
+      canvas.width = w
+      canvas.height = h
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h)
+      canvas.toBlob((blob) => {
+        resolve(new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' }))
+      }, 'image/jpeg', quality)
+    }
+    img.src = URL.createObjectURL(file)
+  })
+}
 
 export default function PhotoAttach({ photo, onChange }) {
   const inputRef = useRef(null)
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files?.[0]
-    if (file) onChange(file)
+    if (file) onChange(await compressImage(file))
   }
 
   const handleRemove = () => {
@@ -14,8 +34,8 @@ export default function PhotoAttach({ photo, onChange }) {
   }
 
   return (
-    <section className="px-4">
-      <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+    <section>
+      <h2 className="typo-section-label mb-3">
         사진 첨부 <span className="text-gray-400 font-normal normal-case">(선택)</span>
       </h2>
 
@@ -47,9 +67,9 @@ export default function PhotoAttach({ photo, onChange }) {
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="w-full h-24 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-[#2d6a4f] hover:text-[#2d6a4f] transition-colors active:scale-[0.98]"
+          className="w-full h-24 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-brand hover:text-brand transition-colors active:scale-[0.98]"
         >
-          <span className="text-2xl">📷</span>
+          <Camera size={24} className="text-gray-400" />
           <span className="text-sm">사진 추가</span>
         </button>
       )}

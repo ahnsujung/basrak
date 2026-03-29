@@ -2,10 +2,11 @@ import { useState } from 'react'
 import Modal from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
 
-export default function NicknameModal({ open, onSave }) {
-  const [value, setValue] = useState('')
+export default function NicknameModal({ open, onSave, onClose, initialValue = '' }) {
+  const [value, setValue] = useState(initialValue)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const isEdit = !!initialValue
 
   const handleSave = async () => {
     const trimmed = value.trim()
@@ -23,10 +24,12 @@ export default function NicknameModal({ open, onSave }) {
   }
 
   return (
-    <Modal open={open}>
+    <Modal open={open} onClose={isEdit ? onClose : undefined}>
       <div className="text-center mb-5">
-        <span className="text-3xl">🌱</span>
-        <h2 className="text-lg font-bold text-gray-900 mt-2">닉네임을 설정해 주세요</h2>
+        <span className="text-3xl">{isEdit ? '✏️' : '🌱'}</span>
+        <h2 className="text-lg font-bold text-gray-900 mt-2">
+          {isEdit ? '닉네임 변경' : '닉네임을 설정해 주세요'}
+        </h2>
         <p className="text-sm text-gray-500 mt-1">활동 이력에 표시될 이름이에요</p>
       </div>
       <input
@@ -36,12 +39,12 @@ export default function NicknameModal({ open, onSave }) {
         onKeyDown={(e) => e.key === 'Enter' && handleSave()}
         placeholder="닉네임 입력 (2~12자)"
         maxLength={12}
-        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#2d6a4f] mb-1"
+        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:border-brand focus:bg-white transition-colors mb-1"
         autoFocus
       />
       {error && <p className="text-xs text-red-500 mb-2">{error}</p>}
       <Button fullWidth loading={loading} onClick={handleSave} className="mt-3">
-        시작하기
+        {isEdit ? '변경하기' : '시작하기'}
       </Button>
     </Modal>
   )

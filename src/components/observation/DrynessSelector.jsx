@@ -43,8 +43,8 @@ const LEVELS = [
 
 export default function DrynessSelector({ value, onChange }) {
   return (
-    <section className="px-4">
-      <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+    <section>
+      <h2 className="typo-section-label mb-3">
         낙엽 건조도 (바스락 지수)
       </h2>
       <div className="grid grid-cols-2 gap-2">

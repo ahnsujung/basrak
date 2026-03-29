@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { reverseGeocode } from '@/utils/reverseGeocode'
 
 function toKSTDateString(date) {
   return new Date(date.getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)
@@ -53,22 +54,27 @@ export function useObservation() {
     setLoading(true)
     setError(null)
     try {
-      // 1. 사진 업로드 (첨부된 경우)
+      // 1. 사진 업로드 (R2)
       let photoUrl = null
       if (photo) {
         const ext = photo.name.split('.').pop() || 'jpg'
-        const path = `${userId}/${Date.now()}.${ext}`
-        const { error: uploadError } = await supabase.storage
-          .from('observation-photos')
-          .upload(path, photo)
-        if (uploadError) throw uploadError
-        const { data: urlData } = supabase.storage
-          .from('observation-photos')
-          .getPublicUrl(path)
-        photoUrl = urlData.publicUrl
+        const key = `${userId}/${Date.now()}.${ext}`
+        const workerUrl = import.meta.env.VITE_R2_WORKER_URL
+        const publicUrl = import.meta.env.VITE_R2_PUBLIC_URL
+
+        const res = await fetch(`${workerUrl}/${key}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': photo.type || 'image/jpeg' },
+          body: photo,
+        })
+        if (!res.ok) throw new Error('사진 업로드에 실패했습니다')
+        photoUrl = `${publicUrl}/${key}`
       }
 
-      // 2. 관측 데이터 저장
+      // 2. 역지오코딩 (시군구)
+      const address = await reverseGeocode(coords.lat, coords.lng)
+
+      // 3. 관측 데이터 저장
       const { error: obsError } = await supabase.from('observations').insert({
         user_id: userId,
         lat: coords.lat,
@@ -76,6 +82,7 @@ export function useObservation() {
         dryness_level: dryness,
         wind_level: wind,
         photo_url: photoUrl,
+        ...(address && { address }),
       })
       if (obsError) throw obsError
 

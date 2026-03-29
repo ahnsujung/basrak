@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import confetti from 'canvas-confetti'
+import { brand } from '@/constants/theme'
 
 const MILESTONE_INFO = {
   100: {
@@ -26,7 +27,7 @@ export default function MilestoneModal({ count, onClose }) {
   useEffect(() => {
     const duration = 3000
     const end = Date.now() + duration
-    const colors = ['#2d6a4f', '#52b788', '#f4a261']
+    const colors = [brand.DEFAULT, brand.light, '#f4a261']
 
     const frame = () => {
       confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors })
@@ -68,12 +69,12 @@ export default function MilestoneModal({ count, onClose }) {
         )}
 
         <div className="bg-green-50 rounded-xl p-3 mb-4">
-          <p className="text-green-700 font-bold text-lg">+{info.bonus} 포인트 지급!</p>
+          <p className="text-brand font-bold text-lg">+{info.bonus} 포인트 지급!</p>
         </div>
 
         <button
           onClick={onClose}
-          className="w-full bg-green-700 text-white rounded-xl py-3 font-bold"
+          className="w-full bg-brand text-white rounded-xl py-3 font-bold"
         >
           지도 확인하기
         </button>

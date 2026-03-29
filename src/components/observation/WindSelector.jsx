@@ -9,8 +9,8 @@ const LEVELS = [
 
 export default function WindSelector({ value, onChange }) {
   return (
-    <section className="px-4">
-      <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+    <section>
+      <h2 className="typo-section-label mb-3">
         체감 풍속
       </h2>
       <div className="grid grid-cols-2 gap-2">

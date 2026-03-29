@@ -43,24 +43,39 @@ async function backfillStreak(userId) {
 export function useProfile(userId) {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     if (!userId) return
+    let mounted = true
+
     supabase
       .from('profiles')
       .select('id, nickname, level, total_points, created_at, streak_days, last_observed_date, streak_shield')
       .eq('id', userId)
       .single()
-      .then(async ({ data }) => {
-        // last_observed_date가 없으면 point_logs로 백필
+      .then(async ({ data, error: fetchErr }) => {
+        if (!mounted) return
+        if (fetchErr) {
+          setError('프로필을 불러오지 못했습니다')
+          setLoading(false)
+          return
+        }
         if (data && !data.last_observed_date) {
           const streak = await backfillStreak(userId)
-          setProfile({ ...data, streak_days: streak })
+          if (mounted) setProfile({ ...data, streak_days: streak })
         } else {
           setProfile(data)
         }
+        if (mounted) setLoading(false)
+      })
+      .catch(() => {
+        if (!mounted) return
+        setError('네트워크 오류가 발생했습니다')
         setLoading(false)
       })
+
+    return () => { mounted = false }
   }, [userId])
 
   const updateNickname = async (nickname) => {
@@ -74,5 +89,5 @@ export function useProfile(userId) {
     setProfile(data)
   }
 
-  return { profile, loading, updateNickname }
+  return { profile, loading, error, updateNickname }
 }

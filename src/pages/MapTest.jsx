@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import { getVWorldTileUrl } from '@/lib/vworld'
 import { getRiskColor } from '@/utils/riskCalculator'
+import { risk } from '@/constants/theme'
 
 // Leaflet 기본 마커 아이콘 경로 수정
 delete L.Icon.Default.prototype._getIconUrl
@@ -40,27 +41,29 @@ export default function MapTest() {
 
   // 지도 초기화 (1회)
   useEffect(() => {
-    mapRef.current = L.map(containerRef.current, {
+    const map = L.map(containerRef.current, {
       center: [36.5, 127.8],
       zoom: 7,
     })
     L.tileLayer(getVWorldTileUrl(), {
       maxZoom: 19,
       attribution: '© 국토지리정보원',
-    }).addTo(mapRef.current)
-    mapRef.current.invalidateSize()
-    layerRef.current = L.layerGroup().addTo(mapRef.current)
-    setReady(true)
+    }).addTo(map)
+    map.invalidateSize()
+    mapRef.current = map
+    layerRef.current = L.layerGroup().addTo(map)
+    // flushSync 대신 queueMicrotask로 다음 틱에 상태 업데이트
+    queueMicrotask(() => setReady(true))
 
     return () => {
-      mapRef.current?.remove()
+      map.remove()
       mapRef.current = null
     }
   }, [])
 
   // count 변경 시 마커 재생성
   useEffect(() => {
-    if (!ready) return
+    if (!ready || !layerRef.current) return
 
     layerRef.current.clearLayers()
     const points = generatePoints(count)
@@ -78,7 +81,7 @@ export default function MapTest() {
     })
     const elapsed = performance.now() - t0
 
-    setStats({ count, elapsed: elapsed.toFixed(1) })
+    queueMicrotask(() => setStats({ count, elapsed: elapsed.toFixed(1) }))
   }, [count, ready])
 
   return (
@@ -104,10 +107,10 @@ export default function MapTest() {
         {/* 범례 */}
         <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm rounded-xl px-3 py-2 z-[1000] text-xs space-y-1">
           {[
-            { color: '#4CAF50', label: '낮음 (2-3)' },
-            { color: '#FFC107', label: '보통 (4-5)' },
-            { color: '#FF9800', label: '높음 (6-7)' },
-            { color: '#F44336', label: '매우 높음 (8-10)' },
+            { color: risk.low, label: '낮음 (2-3)' },
+            { color: risk.moderate, label: '보통 (4-5)' },
+            { color: risk.high, label: '높음 (6-7)' },
+            { color: risk.critical, label: '매우 높음 (8-10)' },
           ].map(({ color, label }) => (
             <div key={label} className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full border border-white/30 shrink-0" style={{ backgroundColor: color }} />

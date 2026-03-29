@@ -4,7 +4,7 @@ const sizes = {
   lg: 'w-8 h-8 border-[3px]',
 }
 
-export default function Spinner({ size = 'md', color = 'border-[#2d6a4f]', className = '' }) {
+export default function Spinner({ size = 'md', color = 'border-brand', className = '' }) {
   return (
     <span
       className={`inline-block rounded-full border-t-transparent animate-spin ${sizes[size]} ${color} ${className}`}

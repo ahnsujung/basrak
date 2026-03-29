@@ -1,10 +1,12 @@
 // risk_score = dryness_level + wind_level (범위: 2~10)
 
+import { risk } from '@/constants/theme'
+
 export const getRiskColor = (score) => {
-  if (score <= 3) return '#4CAF50'
-  if (score <= 5) return '#FFC107'
-  if (score <= 7) return '#FF9800'
-  return '#F44336'
+  if (score <= 3) return risk.low
+  if (score <= 5) return risk.moderate
+  if (score <= 7) return risk.high
+  return risk.critical
 }
 
 export const getRiskLabel = (score) => {

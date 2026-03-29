@@ -1,14 +1,14 @@
 const variants = {
-  primary: 'bg-[#2d6a4f] text-white hover:bg-[#245a41] active:bg-[#1e4d37]',
-  secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300',
+  primary: 'bg-brand text-white hover:bg-brand-hover active:bg-brand-active',
+  secondary: 'bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100 active:bg-gray-200',
   danger: 'bg-red-500 text-white hover:bg-red-600 active:bg-red-700',
-  ghost: 'bg-transparent text-gray-600 hover:bg-gray-100 active:bg-gray-200',
+  ghost: 'bg-transparent text-gray-600 hover:bg-gray-50 active:bg-gray-100',
 }
 
 const sizes = {
-  sm: 'h-9 px-3 text-sm',
-  md: 'h-11 px-4 text-base',
-  lg: 'h-13 px-5 text-base',
+  sm: 'h-(--height-btn-sm) px-4 text-sm',
+  md: 'h-(--height-btn-md) px-5 text-sm',
+  lg: 'h-(--height-btn-lg) px-5 text-base',
 }
 
 export default function Button({
