@@ -39,8 +39,8 @@ function RiskBar({ score }) {
         />
       </div>
       <div className="flex justify-between mt-1.5">
-        <span className="text-[10px] text-gray-400">낮음</span>
-        <span className="text-[10px] text-gray-400">매우 높음</span>
+        <span className="text-[11px] text-gray-500">낮음</span>
+        <span className="text-[11px] text-gray-500">매우 높음</span>
       </div>
     </div>
   )
