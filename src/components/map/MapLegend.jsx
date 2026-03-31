@@ -9,7 +9,7 @@ const ITEMS = [
 
 export default function MapLegend({ count }) {
   return (
-    <div className="absolute top-2 left-2 z-[1000] bg-white/80 backdrop-blur-sm rounded-lg px-2 py-1.5 shadow-sm border border-gray-100/60">
+    <div className="absolute top-[4.5rem] left-4 z-[1000] bg-white/80 backdrop-blur-sm rounded-lg px-2 py-1.5 shadow-sm border border-gray-100/60">
       <div className="flex items-center gap-2.5">
         {ITEMS.map(({ score, label }) => (
           <div key={score} className="flex items-center gap-1">
