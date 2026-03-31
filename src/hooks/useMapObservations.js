@@ -6,8 +6,19 @@ export function useMapObservations() {
   const [totalCount, setTotalCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [authReady, setAuthReady] = useState(false)
+
+  // 인증 상태 변경 감지 — 세션 복원 후 재조회
+  useEffect(() => {
+    supabase.auth.getSession().then(() => setAuthReady(true))
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      setAuthReady(true)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
 
   useEffect(() => {
+    if (!authReady) return
     let mounted = true
 
     const fetchData = () => {
@@ -23,15 +34,15 @@ export function useMapObservations() {
       ]).then(([{ data, error: fetchErr }, { data: count }]) => {
         if (!mounted) return
         if (fetchErr) {
-          setError('관측 데이터를 불러오지 못했습니다')
+          setError(fetchErr.message)
         } else {
           if (data) setObservations(data)
           if (count != null) setTotalCount(count)
         }
         setLoading(false)
-      }).catch(() => {
+      }).catch((e) => {
         if (!mounted) return
-        setError('네트워크 오류가 발생했습니다')
+        setError(e.message || '네트워크 오류가 발생했습니다')
         setLoading(false)
       })
     }
@@ -40,7 +51,7 @@ export function useMapObservations() {
     const interval = setInterval(fetchData, 5 * 60 * 1000)
 
     return () => { mounted = false; clearInterval(interval) }
-  }, [])
+  }, [authReady])
 
   // Realtime: 새 관측 실시간 추가
   useEffect(() => {

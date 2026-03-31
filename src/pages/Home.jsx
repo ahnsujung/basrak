@@ -21,7 +21,7 @@ export default function Home() {
   const navigate = useNavigate()
   const { show: showOnboarding, dismiss: dismissOnboarding } = useOnboarding()
   const { coords } = useLocation()
-  const { observations, totalCount, loading } = useMapObservations()
+  const { observations, totalCount, loading, error: mapError } = useMapObservations()
   const { user } = useAuth()
   const { profile } = useProfile(user?.id)
   const { data: contribution } = useLocalContribution(coords?.lat, coords?.lng, user?.id)
@@ -44,6 +44,12 @@ export default function Home() {
         {loading && (
           <div className="absolute top-3 right-3 bg-white rounded-full p-2 shadow z-10">
             <Spinner size="sm" />
+          </div>
+        )}
+
+        {mapError && (
+          <div className="absolute top-3 left-3 right-3 bg-red-50 border border-red-200 rounded-xl px-3 py-2 z-10">
+            <p className="text-xs text-red-600">지도 데이터 오류: {mapError}</p>
           </div>
         )}
 
