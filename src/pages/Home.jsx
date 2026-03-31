@@ -6,7 +6,6 @@ import LeafletMap from '@/components/map/LeafletMap'
 import ObservationLayer from '@/components/map/ObservationLayer'
 import MapLegend from '@/components/map/MapLegend'
 import ObservationSheet from '@/components/map/ObservationSheet'
-import EmptyMapOverlay from '@/components/map/EmptyMapOverlay'
 import Spinner from '@/components/ui/Spinner'
 import StreakBanner from '@/components/home/StreakBanner'
 import LocalContributionCard from '@/components/home/LocalContributionCard'
@@ -57,9 +56,6 @@ export default function Home() {
           onSelect={setSelected}
         />
 
-        {!loading && observations.length === 0 && (
-          <EmptyMapOverlay onObserve={() => navigate('/observe')} />
-        )}
       </div>
 
       <ObservationSheet observation={selected} onClose={() => setSelected(null)} />
