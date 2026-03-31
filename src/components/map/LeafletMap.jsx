@@ -18,9 +18,6 @@ export default function LeafletMap({ onMapReady, coords }) {
   // 최초 1회 지도 초기화 — 항상 전국 뷰로 시작
   useEffect(() => {
     const southKoreaBounds = L.latLngBounds([28.0, 124.5], [42.0, 132.0])
-    // 실제 남한 육지 범위 — fitBounds 대상
-    const landBounds = L.latLngBounds([33.0, 125.5], [38.6, 129.6])
-
     mapRef.current = L.map(containerRef.current, {
       zoomControl: false,
       maxBounds: southKoreaBounds,
@@ -31,7 +28,10 @@ export default function LeafletMap({ onMapReady, coords }) {
       renderer: L.svg({ padding: 2.0 }),
     })
 
-    mapRef.current.fitBounds(landBounds, { padding: [10, 10] })
+    // 수평(경도) 기준으로 줌 계산 → 화면 너비에 한반도 동서폭 맞춤
+    const ewBounds = L.latLngBounds([36, 125.5], [36.1, 129.8])
+    const zoom = mapRef.current.getBoundsZoom(ewBounds)
+    mapRef.current.setView([36.0, 127.7], zoom)
 
     // GeoJSON을 마커 아래에 그리기 위한 커스텀 pane
     mapRef.current.createPane('base')
@@ -78,7 +78,7 @@ export default function LeafletMap({ onMapReady, coords }) {
     if (!map || !coords) return
 
     function makeIcon(zoom) {
-      const dot = zoom >= 10 ? 18 : 14
+      const dot = zoom >= 10 ? 14 : 10
       return L.divIcon({
         className: 'my-loc-marker',
         html: `<div class="my-loc-dot" style="width:${dot}px;height:${dot}px;"></div>`,
