@@ -18,7 +18,7 @@ function formatDate(str) {
 const COLUMNS = [
   { key: 'idx', label: '#', width: 'w-[4%]', tdClass: 'text-gray-400', render: (r, meta) => meta.total - meta.offset },
   { key: 'photo', label: '사진', width: 'w-[5%]', render: (r) => r.photo_url ? (
-    <img src={r.photo_url} alt="" className="w-8 h-8 rounded object-cover" />
+    <img src={r.photo_url} alt="" className="w-10 h-10 rounded object-cover aspect-square" />
   ) : <span className="text-gray-300 text-xs">-</span> },
   { key: 'observed_at', label: '시간', width: 'w-[10%]', sortable: true, render: (r) => <span className="text-gray-700 whitespace-nowrap">{formatDate(r.observed_at)}</span> },
   { key: 'address', label: '주소', width: 'w-[20%]', render: (r) => <span className="text-gray-700">{r.address || '-'}</span> },

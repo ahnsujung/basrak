@@ -83,11 +83,6 @@ function DrynessPhotoCard({ index, label, url, onUploaded }) {
   const uploadToR2 = async (file) => {
     const workerUrl = import.meta.env.VITE_R2_WORKER_URL
     const publicUrl = import.meta.env.VITE_R2_PUBLIC_URL
-    if (!workerUrl || !publicUrl) {
-      alert('R2 업로드 환경변수가 설정되지 않았습니다 (VITE_R2_WORKER_URL, VITE_R2_PUBLIC_URL)')
-      return
-    }
-
     setUploading(true)
     try {
       const ext = file.name.split('.').pop() || 'jpg'

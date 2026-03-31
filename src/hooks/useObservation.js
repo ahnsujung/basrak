@@ -57,11 +57,12 @@ export function useObservation() {
       // 1. 사진 업로드 (R2)
       let photoUrl = null
       if (photo) {
-        const ext = photo.name.split('.').pop() || 'jpg'
-        const key = `${userId}/${Date.now()}.${ext}`
         const workerUrl = import.meta.env.VITE_R2_WORKER_URL
         const publicUrl = import.meta.env.VITE_R2_PUBLIC_URL
+        if (!workerUrl || !publicUrl) throw new Error('사진 업로드 설정이 누락되었습니다')
 
+        const ext = photo.name.split('.').pop() || 'jpg'
+        const key = `${userId}/${Date.now()}.${ext}`
         const res = await fetch(`${workerUrl}/${key}`, {
           method: 'PUT',
           headers: { 'Content-Type': photo.type || 'image/jpeg' },
