@@ -17,7 +17,7 @@ export default function LeafletMap({ onMapReady, coords }) {
 
   // 최초 1회 지도 초기화 — 항상 전국 뷰로 시작
   useEffect(() => {
-    const southKoreaBounds = L.latLngBounds([32.5, 125.0], [39.0, 130.0])
+    const southKoreaBounds = L.latLngBounds([32.5, 125.0], [39.0, 132.0])
     mapRef.current = L.map(containerRef.current, {
       zoomControl: false,
       maxBounds: southKoreaBounds,
@@ -61,10 +61,19 @@ export default function LeafletMap({ onMapReady, coords }) {
           },
         }).addTo(mapRef.current)
 
-        // 독도
-        L.circleMarker([37.2417, 131.8697], {
+        // 독도 (동도+서도, 실제 크기 반영)
+        L.circle([37.2417, 131.8697], {
           pane: 'base',
-          radius: 3,
+          radius: 150,
+          color: '#94a3b8',
+          weight: 1,
+          fillColor: '#f8fafc',
+          fillOpacity: 1,
+          interactive: false,
+        }).addTo(mapRef.current)
+        L.circle([37.2418, 131.8644], {
+          pane: 'base',
+          radius: 150,
           color: '#94a3b8',
           weight: 1,
           fillColor: '#f8fafc',
