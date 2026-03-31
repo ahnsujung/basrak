@@ -77,12 +77,11 @@ export default function LeafletMap({ onMapReady, coords }) {
 
     function makeIcon(zoom) {
       const dot = zoom >= 10 ? 14 : 10
-      const ring = dot * 3
       return L.divIcon({
         className: 'my-loc-marker',
-        html: `<div class="my-loc-ring" style="width:${ring}px;height:${ring}px;"></div><div class="my-loc-dot" style="width:${dot}px;height:${dot}px;"></div>`,
-        iconSize: [ring, ring],
-        iconAnchor: [ring / 2, ring / 2],
+        html: `<div class="my-loc-dot" style="width:${dot}px;height:${dot}px;"></div>`,
+        iconSize: [dot, dot],
+        iconAnchor: [dot / 2, dot / 2],
       })
     }
 
