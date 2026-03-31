@@ -17,7 +17,7 @@ export default function LeafletMap({ onMapReady, coords }) {
 
   // 최초 1회 지도 초기화 — 항상 전국 뷰로 시작
   useEffect(() => {
-    const southKoreaBounds = L.latLngBounds([28.0, 124.5], [42.0, 132.0])
+    const southKoreaBounds = L.latLngBounds([32.5, 125.0], [39.0, 130.0])
     mapRef.current = L.map(containerRef.current, {
       zoomControl: false,
       maxBounds: southKoreaBounds,
