@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
+import { uploadToR2 } from '@/lib/r2'
 import { Save, Upload, Download, Shield, X } from 'lucide-react'
 import { TERMS_SERVICE, TERMS_PRIVACY, TERMS_LOCATION } from '@/constants/terms'
 
@@ -80,20 +81,13 @@ function DrynessPhotoCard({ index, label, url, onUploaded }) {
   const [dragOver, setDragOver] = useState(false)
   const fileRef = useRef(null)
 
-  const uploadToR2 = async (file) => {
-    const workerUrl = import.meta.env.VITE_R2_WORKER_URL
-    const publicUrl = import.meta.env.VITE_R2_PUBLIC_URL
+  const handleUploadToR2 = async (file) => {
     setUploading(true)
     try {
       const ext = file.name.split('.').pop() || 'jpg'
       const key = `dryness/${index + 1}_${Date.now()}.${ext}`
-      const res = await fetch(`${workerUrl}/${key}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': file.type || 'image/jpeg' },
-        body: file,
-      })
-      if (!res.ok) throw new Error('업로드 실패')
-      onUploaded(`${publicUrl}/${key}`)
+      const url = await uploadToR2(key, file)
+      onUploaded(url)
     } catch (e) {
       alert(e.message)
     } finally {
@@ -105,12 +99,12 @@ function DrynessPhotoCard({ index, label, url, onUploaded }) {
     e.preventDefault()
     setDragOver(false)
     const file = e.dataTransfer.files?.[0]
-    if (file?.type.startsWith('image/')) uploadToR2(file)
+    if (file?.type.startsWith('image/')) handleUploadToR2(file)
   }
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0]
-    if (file) uploadToR2(file)
+    if (file) handleUploadToR2(file)
     e.target.value = ''
   }
 

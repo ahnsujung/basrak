@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { deleteFromR2 } from '@/lib/r2'
 
 export function useMyObservations(userId) {
   const [observations, setObservations] = useState([])
@@ -35,15 +36,7 @@ export function useMyObservations(userId) {
   }, [userId])
 
   const deleteObservation = async (id, photoUrl) => {
-    // R2 사진 삭제
-    if (photoUrl) {
-      const r2Public = import.meta.env.VITE_R2_PUBLIC_URL
-      const workerUrl = import.meta.env.VITE_R2_WORKER_URL
-      if (r2Public && workerUrl && photoUrl.startsWith(r2Public)) {
-        const key = photoUrl.replace(r2Public + '/', '')
-        await fetch(`${workerUrl}/${key}`, { method: 'DELETE' }).catch(() => {})
-      }
-    }
+    if (photoUrl) await deleteFromR2(photoUrl)
 
     // DB에서 관측 삭제
     const { error: err } = await supabase

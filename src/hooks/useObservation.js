@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { uploadToR2 } from '@/lib/r2'
 import { reverseGeocode } from '@/utils/reverseGeocode'
 
 function toKSTDateString(date) {
@@ -57,19 +58,9 @@ export function useObservation() {
       // 1. 사진 업로드 (R2)
       let photoUrl = null
       if (photo) {
-        const workerUrl = import.meta.env.VITE_R2_WORKER_URL
-        const publicUrl = import.meta.env.VITE_R2_PUBLIC_URL
-        if (!workerUrl || !publicUrl) throw new Error('사진 업로드 설정이 누락되었습니다')
-
         const ext = photo.name.split('.').pop() || 'jpg'
         const key = `${userId}/${Date.now()}.${ext}`
-        const res = await fetch(`${workerUrl}/${key}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': photo.type || 'image/jpeg' },
-          body: photo,
-        })
-        if (!res.ok) throw new Error('사진 업로드에 실패했습니다')
-        photoUrl = `${publicUrl}/${key}`
+        photoUrl = await uploadToR2(key, photo)
       }
 
       // 2. 역지오코딩 (시군구)
