@@ -18,18 +18,21 @@ export default function LeafletMap({ onMapReady, coords }) {
   // 최초 1회 지도 초기화 — 항상 전국 뷰로 시작
   useEffect(() => {
     const southKoreaBounds = L.latLngBounds([28.0, 124.5], [42.0, 132.0])
+    // 실제 남한 육지 범위 — fitBounds 대상
+    const landBounds = L.latLngBounds([33.0, 125.5], [38.6, 129.6])
 
     mapRef.current = L.map(containerRef.current, {
-      center: [35.8, 127.7],
-      zoom: 7,
       zoomControl: false,
       maxBounds: southKoreaBounds,
       maxBoundsViscosity: 1.0,
-      minZoom: 7,
+      minZoom: 6,
       maxZoom: 18,
       attributionControl: false,
       renderer: L.svg({ padding: 2.0 }),
     })
+
+    // 상단 배너·하단 카드에 가려지는 영역 고려한 패딩
+    mapRef.current.fitBounds(landBounds, { paddingTopLeft: [0, 48], paddingBottomRight: [0, 80] })
 
     // GeoJSON을 마커 아래에 그리기 위한 커스텀 pane
     mapRef.current.createPane('base')
