@@ -4,40 +4,32 @@ import { supabase } from '@/lib/supabase'
 const LEVELS = [
   {
     level: 1,
-    color: '#4CAF50',
     bg: 'bg-green-50',
     border: 'border-green-400',
-    text: 'text-green-700',
     label: '촉촉함',
     desc: '뭉쳤을 때 물기가 묻어남',
     risk: '낮음',
   },
   {
     level: 2,
-    color: '#FFC107',
     bg: 'bg-yellow-50',
     border: 'border-yellow-400',
-    text: 'text-yellow-700',
     label: '구겨짐',
     desc: '물기 없음 + 낙엽이 구겨짐',
     risk: '다소 높음',
   },
   {
     level: 3,
-    color: '#FF9800',
     bg: 'bg-orange-50',
     border: 'border-orange-400',
-    text: 'text-orange-700',
     label: '쪼개짐',
     desc: '물기 없음 + 낙엽이 쪼개짐',
     risk: '높음',
   },
   {
     level: 4,
-    color: '#F44336',
     bg: 'bg-red-50',
     border: 'border-red-400',
-    text: 'text-red-700',
     label: '바스라짐',
     desc: '물기 없음 + 잘게 바스라짐',
     risk: '매우 높음',
@@ -45,7 +37,6 @@ const LEVELS = [
 ]
 
 export default function DrynessSelector({ value, onChange }) {
-  const [viewPhoto, setViewPhoto] = useState(null)
   const [photos, setPhotos] = useState([null, null, null, null])
 
   useEffect(() => {
@@ -70,7 +61,7 @@ export default function DrynessSelector({ value, onChange }) {
         낙엽 건조도 (바스락 지수)
       </h2>
       <div className="grid grid-cols-2 gap-2">
-        {LEVELS.map(({ level, bg, border, text, label, desc, risk }, idx) => {
+        {LEVELS.map(({ level, bg, border, label, desc, risk }, idx) => {
           const photo = photos[idx] || null
           const selected = value === level
           return (
@@ -85,15 +76,7 @@ export default function DrynessSelector({ value, onChange }) {
                   : 'bg-white border-gray-100 hover:border-gray-300',
               ].join(' ')}
             >
-              <div
-                className="relative w-full aspect-square bg-gray-200"
-                onClick={(e) => {
-                  if (photo) {
-                    e.stopPropagation()
-                    setViewPhoto(photo)
-                  }
-                }}
-              >
+              <div className="relative w-full aspect-square bg-gray-200">
                 {photo && (
                   <img src={photo} alt={label} className="w-full h-full object-cover" />
                 )}
@@ -112,16 +95,6 @@ export default function DrynessSelector({ value, onChange }) {
           )
         })}
       </div>
-
-      {/* 이미지 뷰어 */}
-      {viewPhoto && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90" onClick={() => setViewPhoto(null)}>
-          <button className="absolute top-[env(safe-area-inset-top,12px)] right-4 mt-3 w-9 h-9 bg-white/15 rounded-full flex items-center justify-center text-white text-base" onClick={() => setViewPhoto(null)}>
-            ✕
-          </button>
-          <img src={viewPhoto} alt="건조도 참고 사진" className="max-w-full max-h-full object-contain px-5" onClick={(e) => e.stopPropagation()} />
-        </div>
-      )}
     </section>
   )
 }
