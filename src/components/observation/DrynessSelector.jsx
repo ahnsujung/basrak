@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
 
 const LEVELS = [
   {
@@ -10,7 +11,6 @@ const LEVELS = [
     label: '촉촉함',
     desc: '뭉쳤을 때 물기가 묻어남',
     risk: '낮음',
-    photo: null, // TODO: 실제 사진으로 교체
   },
   {
     level: 2,
@@ -21,7 +21,6 @@ const LEVELS = [
     label: '구겨짐',
     desc: '물기 없음 + 낙엽이 구겨짐',
     risk: '다소 높음',
-    photo: null,
   },
   {
     level: 3,
@@ -32,7 +31,6 @@ const LEVELS = [
     label: '쪼개짐',
     desc: '물기 없음 + 낙엽이 쪼개짐',
     risk: '높음',
-    photo: null,
   },
   {
     level: 4,
@@ -43,12 +41,28 @@ const LEVELS = [
     label: '바스라짐',
     desc: '물기 없음 + 잘게 바스라짐',
     risk: '매우 높음',
-    photo: null,
   },
 ]
 
 export default function DrynessSelector({ value, onChange }) {
   const [viewPhoto, setViewPhoto] = useState(null)
+  const [photos, setPhotos] = useState([null, null, null, null])
+
+  useEffect(() => {
+    supabase
+      .from('app_config')
+      .select('value')
+      .eq('key', 'dryness_photos')
+      .single()
+      .then(({ data }) => {
+        if (data?.value) {
+          try {
+            const parsed = typeof data.value === 'string' ? JSON.parse(data.value) : data.value
+            if (Array.isArray(parsed)) setPhotos(parsed)
+          } catch {}
+        }
+      })
+  }, [])
 
   return (
     <section>
@@ -56,7 +70,8 @@ export default function DrynessSelector({ value, onChange }) {
         낙엽 건조도 (바스락 지수)
       </h2>
       <div className="grid grid-cols-2 gap-2">
-        {LEVELS.map(({ level, bg, border, text, label, desc, risk, photo }) => {
+        {LEVELS.map(({ level, bg, border, text, label, desc, risk }, idx) => {
+          const photo = photos[idx] || null
           const selected = value === level
           return (
             <button
