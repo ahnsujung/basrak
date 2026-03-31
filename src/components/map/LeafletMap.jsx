@@ -31,8 +31,7 @@ export default function LeafletMap({ onMapReady, coords }) {
       renderer: L.svg({ padding: 2.0 }),
     })
 
-    // 상단 배너·하단 카드에 가려지는 영역 고려한 패딩
-    mapRef.current.fitBounds(landBounds, { paddingTopLeft: [0, 48], paddingBottomRight: [0, 80] })
+    mapRef.current.fitBounds(landBounds, { padding: [10, 10] })
 
     // GeoJSON을 마커 아래에 그리기 위한 커스텀 pane
     mapRef.current.createPane('base')
@@ -79,7 +78,7 @@ export default function LeafletMap({ onMapReady, coords }) {
     if (!map || !coords) return
 
     function makeIcon(zoom) {
-      const dot = zoom >= 10 ? 14 : 10
+      const dot = zoom >= 10 ? 18 : 14
       return L.divIcon({
         className: 'my-loc-marker',
         html: `<div class="my-loc-dot" style="width:${dot}px;height:${dot}px;"></div>`,

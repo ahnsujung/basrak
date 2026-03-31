@@ -115,7 +115,7 @@ body {
 }
 .my-loc-dot {
   background: #4285F4;
-  border: 3px solid white;
+  border: 2px solid white;
   border-radius: 50%;
   box-shadow: 0 1px 4px rgba(0,0,0,0.3);
   position: absolute;
