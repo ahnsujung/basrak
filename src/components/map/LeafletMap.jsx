@@ -60,6 +60,17 @@ export default function LeafletMap({ onMapReady, coords }) {
             })
           },
         }).addTo(mapRef.current)
+
+        // 독도
+        L.circleMarker([37.2417, 131.8697], {
+          pane: 'base',
+          radius: 3,
+          color: '#94a3b8',
+          weight: 1,
+          fillColor: '#f8fafc',
+          fillOpacity: 1,
+          interactive: false,
+        }).addTo(mapRef.current)
       })
 
 
