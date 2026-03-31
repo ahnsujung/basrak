@@ -6,7 +6,7 @@ export default function RequireAdmin({ children }) {
   const location = useLocation()
 
   if (loading) {
-    return <div className="w-full max-w-lg min-h-dvh mx-auto bg-white" />
+    return <div className="min-h-dvh bg-gray-50" />
   }
 
   if (!user) {

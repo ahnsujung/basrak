@@ -83,7 +83,10 @@ function DrynessPhotoCard({ index, label, url, onUploaded }) {
   const uploadToR2 = async (file) => {
     const workerUrl = import.meta.env.VITE_R2_WORKER_URL
     const publicUrl = import.meta.env.VITE_R2_PUBLIC_URL
-    if (!workerUrl || !publicUrl) return
+    if (!workerUrl || !publicUrl) {
+      alert('R2 업로드 환경변수가 설정되지 않았습니다 (VITE_R2_WORKER_URL, VITE_R2_PUBLIC_URL)')
+      return
+    }
 
     setUploading(true)
     try {
@@ -255,7 +258,12 @@ export default function WebSettings() {
     }))
 
     for (const entry of entries) {
-      await supabase.from('app_config').upsert(entry, { onConflict: 'key' })
+      const { error } = await supabase.from('app_config').upsert(entry, { onConflict: 'key' })
+      if (error) {
+        alert(`저장 실패 (${entry.key}): ${error.message}`)
+        setSaving(false)
+        return
+      }
     }
 
     setSaving(false)
